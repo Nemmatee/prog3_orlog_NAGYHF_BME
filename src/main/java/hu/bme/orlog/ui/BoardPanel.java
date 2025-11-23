@@ -137,6 +137,10 @@ public class BoardPanel extends JPanel {
         this.prevHp2 = gs.p2.getHp();
     }
 
+    public boolean isAnimating() {
+        return resolutionIdx >= 0 || animTicksP1 > 0 || animTicksP2 > 0 || hpFlashTicks > 0;
+    }
+
     public void triggerDamageAnim(int dmgToP1, int dmgToP2) {
         // Kept for backward compatibility; use startResolutionAnim for full sequence
         startResolutionAnim(gs.p1.getDice().currentFaces(), gs.p2.getDice().currentFaces(),

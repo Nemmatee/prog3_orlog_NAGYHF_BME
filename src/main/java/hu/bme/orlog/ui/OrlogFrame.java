@@ -60,6 +60,9 @@ public class OrlogFrame extends JFrame {
         var btnRoll = new JButton(new AbstractAction("Dobás / Következő") {
             @Override
             public void actionPerformed(ActionEvent e) {
+                if (board.isAnimating()) {
+                    return;
+                }
                 if (gs.isGameOver()) {
                     JOptionPane.showMessageDialog(OrlogFrame.this, "Játék vége! File > New az újrakezdéshez.");
                     return;
@@ -83,6 +86,8 @@ public class OrlogFrame extends JFrame {
                     var f2 = gs.p2.getDice().currentFaces();
                     int hpBeforeAI = gs.p2.getHp();
                     int hpBeforeP1 = gs.p1.getHp();
+                    int favorBeforeAI = gs.p2.getFavor();
+                    int favorBeforeP1 = gs.p1.getFavor();
                     engine.resolveRound(gs, f1, f2);
                     ((JButton) e.getSource()).setText("Dobás / Következő");
                     // trigger anim sequence (resolution steps + hp flash)
@@ -98,6 +103,15 @@ public class OrlogFrame extends JFrame {
                     int youRangedDmg = Math.max(0, gs.ranged1 - gs.helmets2);
                     int aiMeleeDmg = Math.max(0, gs.melee2 - gs.shields1);
                     int aiRangedDmg = Math.max(0, gs.ranged2 - gs.helmets1);
+                    int youSteal = Math.min(engine.stealAmount(engine.countFaces(f1)), favorBeforeAI);
+                    int aiSteal = Math.min(engine.stealAmount(engine.countFaces(f2)), favorBeforeP1);
+                    int youGold = engine.goldCount(f1);
+                    int aiGold = engine.goldCount(f2);
+                    int favorDeltaYou = gs.p1.getFavor() - favorBeforeP1;
+                    int favorDeltaAI = gs.p2.getFavor() - favorBeforeAI;
+                    gs.addLog("Favor összegzés (You/AI): +gold " + youGold + "/" + aiGold
+                            + ", steal " + youSteal + "/" + aiSteal
+                            + ", nettó: " + favorDeltaYou + "/" + favorDeltaAI);
                     gs.addLog("Összegzés: You összesen " + gs.dmg1 + " sebzés (melee: " + youMeleeDmg
                             + ", ranged: " + youRangedDmg + ")");
                     gs.addLog("Összegzés: AI összesen " + gs.dmg2 + " sebzés (melee: " + aiMeleeDmg
