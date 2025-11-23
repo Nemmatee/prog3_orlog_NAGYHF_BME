@@ -44,6 +44,8 @@ public class BoardPanel extends JPanel {
     private int hpFlashTicks = 0;
     private int prevHp1 = 15;
     private int prevHp2 = 15;
+    private int pendingDmgP1 = 0;
+    private int pendingDmgP2 = 0;
 
     private final List<ResolutionStep> resolutionSteps = new ArrayList<>();
     private List<Face> animFacesP1 = List.of();
@@ -108,13 +110,21 @@ public class BoardPanel extends JPanel {
                 ((Timer) e.getSource()).stop();
         });
 
-        Timer tmp = new Timer(1800, e -> {
+        Timer tmp = new Timer(1650, e -> {
             if (resolutionIdx + 1 < resolutionSteps.size()) {
                 resolutionIdx++;
                 repaint();
             } else {
                 resolutionIdx = -1;
                 resolutionSteps.clear();
+                animTicksP1 = pendingDmgP1 > 0 ? 12 : 0;
+                animTicksP2 = pendingDmgP2 > 0 ? 12 : 0;
+                hpFlashTicks = (pendingDmgP1 > 0 || pendingDmgP2 > 0) ? 12 : 0;
+                pendingDmgP1 = 0;
+                pendingDmgP2 = 0;
+                if (animTicksP1 > 0 || animTicksP2 > 0 || hpFlashTicks > 0) {
+                    animTimer.start();
+                }
                 ((Timer) e.getSource()).stop();
             }
         });
@@ -139,7 +149,9 @@ public class BoardPanel extends JPanel {
         this.animFacesP2 = new ArrayList<>(p2Faces);
         this.prevHp1 = hpBeforeP1;
         this.prevHp2 = hpBeforeP2;
-        this.hpFlashTicks = 12;
+        this.hpFlashTicks = 0;
+        this.pendingDmgP1 = dmgToP1;
+        this.pendingDmgP2 = dmgToP2;
 
         resolutionSteps.clear();
         resolutionSteps.add(new ResolutionStep(ResolutionType.MELEE_P1));
@@ -151,11 +163,6 @@ public class BoardPanel extends JPanel {
         resolutionIdx = 0;
         resolutionTimer.restart();
         repaint();
-
-        animTicksP1 = dmgToP1 > 0 ? 12 : 0;
-        animTicksP2 = dmgToP2 > 0 ? 12 : 0;
-        if (animTicksP1 > 0 || animTicksP2 > 0 || hpFlashTicks > 0)
-            animTimer.start();
     }
 
     private Rectangle pickRectAt(int x, int y) {

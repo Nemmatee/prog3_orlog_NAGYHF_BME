@@ -93,6 +93,19 @@ public class OrlogFrame extends JFrame {
                         String winner = gs.p1.getHp() > 0 ? gs.p1.getName() : gs.p2.getName();
                         JOptionPane.showMessageDialog(OrlogFrame.this, "Nyertes: " + winner);
                     }
+                    // Részletesebb log a kör kiértékeléséről
+                    int youMeleeDmg = Math.max(0, gs.melee1 - gs.shields2);
+                    int youRangedDmg = Math.max(0, gs.ranged1 - gs.helmets2);
+                    int aiMeleeDmg = Math.max(0, gs.melee2 - gs.shields1);
+                    int aiRangedDmg = Math.max(0, gs.ranged2 - gs.helmets1);
+                    gs.addLog("Összegzés: You összesen " + gs.dmg1 + " sebzés (melee: " + youMeleeDmg
+                            + ", ranged: " + youRangedDmg + ")");
+                    gs.addLog("Összegzés: AI összesen " + gs.dmg2 + " sebzés (melee: " + aiMeleeDmg
+                            + ", ranged: " + aiRangedDmg + ")");
+                    gs.addLog("Részletek: You melee " + gs.melee1 + " vs AI shield " + gs.shields2
+                            + " | You ranged " + gs.ranged1 + " vs AI helmet " + gs.helmets2);
+                    gs.addLog("Részletek: AI melee " + gs.melee2 + " vs You shield " + gs.shields1
+                            + " | AI ranged " + gs.ranged2 + " vs You helmet " + gs.helmets1);
                 }
                 logModel.setLog(gs.log);
                 board.setGameState(gs);
