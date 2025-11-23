@@ -14,6 +14,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import javax.swing.JPanel;
@@ -41,7 +42,16 @@ public class BoardPanel extends JPanel {
     // Damage animation
     private int animTicksP1 = 0;
     private int animTicksP2 = 0;
+    private int hpFlashTicks = 0;
+    private int prevHp1 = 15;
+    private int prevHp2 = 15;
+
+    private List<Face> animP1Faces = Collections.emptyList();
+    private List<Face> animP2Faces = Collections.emptyList();
+    private final List<ResolutionStep> resolutionSteps = new ArrayList<>();
+    private int resolutionIdx = -1;
     private final Timer animTimer;
+    private final Timer resolutionTimer;
 
     public BoardPanel(GameState gs) {
         this.gs = gs;
@@ -89,10 +99,25 @@ public class BoardPanel extends JPanel {
                 animTicksP2--;
                 repaint = true;
             }
+            if (hpFlashTicks > 0) {
+                hpFlashTicks--;
+                repaint = true;
+            }
             if (repaint)
                 repaint();
             if (animTicksP1 == 0 && animTicksP2 == 0)
                 ((Timer) e.getSource()).stop();
+        });
+
+        resolutionTimer = new Timer(650, e -> {
+            if (resolutionIdx + 1 < resolutionSteps.size()) {
+                resolutionIdx++;
+                repaint();
+            } else {
+                resolutionIdx = -1;
+                resolutionSteps.clear();
+                resolutionTimer.stop();
+            }
         });
     }
 
@@ -101,13 +126,32 @@ public class BoardPanel extends JPanel {
     }
 
     public void triggerDamageAnim(int dmgToP1, int dmgToP2) {
-        if (dmgToP1 > 0) {
-            animTicksP1 = 12;
-        }
-        if (dmgToP2 > 0) {
-            animTicksP2 = 12;
-        }
-        if (animTicksP1 > 0 || animTicksP2 > 0)
+        // Kept for backward compatibility; use startResolutionAnim for full sequence
+        startResolutionAnim(gs.p1.getDice().currentFaces(), gs.p2.getDice().currentFaces(),
+                gs.p1.getHp(), gs.p2.getHp(), dmgToP1, dmgToP2);
+    }
+
+    public void startResolutionAnim(List<Face> p1Faces, List<Face> p2Faces, int hpBeforeP1, int hpBeforeP2,
+            int dmgToP1, int dmgToP2) {
+        this.animP1Faces = p1Faces;
+        this.animP2Faces = p2Faces;
+        this.prevHp1 = hpBeforeP1;
+        this.prevHp2 = hpBeforeP2;
+        this.hpFlashTicks = 12;
+
+        resolutionSteps.clear();
+        resolutionSteps.add(new ResolutionStep(ResolutionType.MELEE_P1));
+        resolutionSteps.add(new ResolutionStep(ResolutionType.MELEE_P2));
+        resolutionSteps.add(new ResolutionStep(ResolutionType.RANGED_P1));
+        resolutionSteps.add(new ResolutionStep(ResolutionType.RANGED_P2));
+        resolutionSteps.add(new ResolutionStep(ResolutionType.STEAL_P1));
+        resolutionSteps.add(new ResolutionStep(ResolutionType.STEAL_P2));
+        resolutionIdx = 0;
+        resolutionTimer.restart();
+
+        animTicksP1 = dmgToP1 > 0 ? 12 : 0;
+        animTicksP2 = dmgToP2 > 0 ? 12 : 0;
+        if (animTicksP1 > 0 || animTicksP2 > 0 || hpFlashTicks > 0)
             animTimer.start();
     }
 
@@ -187,8 +231,8 @@ public class BoardPanel extends JPanel {
         drawBowl(g2, p1Center);
         drawBowl(g2, p2Center);
 
-        drawHpStones(g2, 40, 40, gs.p1.getHp());
-        drawHpStones(g2, 40, h - 80, gs.p2.getHp());
+        drawHpStones(g2, 40, 40, gs.p1.getHp(), prevHp1, hpFlashTicks);
+        drawHpStones(g2, 40, h - 80, gs.p2.getHp(), prevHp2, hpFlashTicks);
 
         drawFavorStack(g2, w - 160, 40, gs.p1.getFavor());
         drawFavorStack(g2, w - 160, h - 80, gs.p2.getFavor());
@@ -293,7 +337,7 @@ public class BoardPanel extends JPanel {
         g2.drawOval(c.x - bowlRadius, c.y - bowlRadius, bowlRadius * 2, bowlRadius * 2);
     }
 
-    private void drawHpStones(Graphics2D g2, int x, int y, int hp) {
+    private void drawHpStones(Graphics2D g2, int x, int y, int hp, int prevHp, int flashTicks) {
         int r = 12;
         int gap = 6;
         g2.setColor(new Color(50, 140, 220));
@@ -304,6 +348,17 @@ public class BoardPanel extends JPanel {
             g2.setColor(new Color(20, 70, 110));
             g2.drawOval(cx, cy, r, r);
             g2.setColor(new Color(50, 140, 220));
+        }
+        if (flashTicks > 0 && prevHp > hp) {
+            int lost = prevHp - hp;
+            int alpha = Math.min(200, 40 + flashTicks * 10);
+            g2.setColor(new Color(220, 50, 50, alpha));
+            for (int i = 0; i < lost; i++) {
+                int idx = hp + i;
+                int cx = x + (idx % 8) * (r + gap);
+                int cy = y + (idx / 8) * (r + gap);
+                g2.fillOval(cx, cy, r, r);
+            }
         }
     }
 
@@ -343,7 +398,8 @@ public class BoardPanel extends JPanel {
                 int ry = (int) (center.y + Math.sin(ang) * ring) - die / 2;
                 Rectangle r = new Rectangle(rx, ry, die, die);
                 boolean hover = (hoverRect != null && hoverRect.equals(r));
-                drawDie(g2, r, f, false, hover);
+                boolean highlight = shouldHighlight(isP1, i, f);
+                drawDie(g2, r, f, false, hover, highlight);
                 unlockedHit.add(r);
                 unlockedIdx.add(i);
                 u++;
@@ -386,7 +442,8 @@ public class BoardPanel extends JPanel {
             int ry = baseY;
             Rectangle r = new Rectangle(rx, ry, die, die);
             boolean hover = (hoverRect != null && hoverRect.equals(r));
-            drawDie(g2, r, f, true, hover);
+            boolean highlight = shouldHighlight(isP1, idx, f);
+            drawDie(g2, r, f, true, hover, highlight);
 
             lockedHit.add(r);
             lockedIdx.add(idx);
