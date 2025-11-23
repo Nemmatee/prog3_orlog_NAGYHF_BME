@@ -14,7 +14,6 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import javax.swing.JPanel;
@@ -46,9 +45,9 @@ public class BoardPanel extends JPanel {
     private int prevHp1 = 15;
     private int prevHp2 = 15;
 
-    private List<Face> animP1Faces = Collections.emptyList();
-    private List<Face> animP2Faces = Collections.emptyList();
     private final List<ResolutionStep> resolutionSteps = new ArrayList<>();
+    private List<Face> animFacesP1 = List.of();
+    private List<Face> animFacesP2 = List.of();
     private int resolutionIdx = -1;
     private final Timer animTimer;
     private final Timer resolutionTimer;
@@ -109,20 +108,23 @@ public class BoardPanel extends JPanel {
                 ((Timer) e.getSource()).stop();
         });
 
-        resolutionTimer = new Timer(650, e -> {
+        Timer tmp = new Timer(1800, e -> {
             if (resolutionIdx + 1 < resolutionSteps.size()) {
                 resolutionIdx++;
                 repaint();
             } else {
                 resolutionIdx = -1;
                 resolutionSteps.clear();
-                resolutionTimer.stop();
+                ((Timer) e.getSource()).stop();
             }
         });
+        resolutionTimer = tmp;
     }
 
     public void setGameState(GameState gs) {
         this.gs = gs;
+        this.prevHp1 = gs.p1.getHp();
+        this.prevHp2 = gs.p2.getHp();
     }
 
     public void triggerDamageAnim(int dmgToP1, int dmgToP2) {
@@ -133,8 +135,8 @@ public class BoardPanel extends JPanel {
 
     public void startResolutionAnim(List<Face> p1Faces, List<Face> p2Faces, int hpBeforeP1, int hpBeforeP2,
             int dmgToP1, int dmgToP2) {
-        this.animP1Faces = p1Faces;
-        this.animP2Faces = p2Faces;
+        this.animFacesP1 = new ArrayList<>(p1Faces);
+        this.animFacesP2 = new ArrayList<>(p2Faces);
         this.prevHp1 = hpBeforeP1;
         this.prevHp2 = hpBeforeP2;
         this.hpFlashTicks = 12;
@@ -148,6 +150,7 @@ public class BoardPanel extends JPanel {
         resolutionSteps.add(new ResolutionStep(ResolutionType.STEAL_P2));
         resolutionIdx = 0;
         resolutionTimer.restart();
+        repaint();
 
         animTicksP1 = dmgToP1 > 0 ? 12 : 0;
         animTicksP2 = dmgToP2 > 0 ? 12 : 0;
@@ -211,11 +214,21 @@ public class BoardPanel extends JPanel {
         Face f = (dieIdx < faces.size()) ? faces.get(dieIdx) : null;
         boolean locked = p.getDice().isLocked(dieIdx);
         String who = p.getName();
-        String faceStr = (f == null ? "?"
-                : (f.isAttackMelee() ? "MELEE"
-                        : f.isAttackRanged() ? "RANGED"
-                                : f.isShield() ? "SHIELD" : f.isHelmet() ? "HELMET" : f.isSteal() ? "STEAL" : "?"))
-                + (f != null && f.gold ? "_GOLD" : "");
+        String faceStr = "?";
+        if (f != null) {
+            if (f.isAttackMelee())
+                faceStr = "MELEE";
+            else if (f.isAttackRanged())
+                faceStr = "RANGED";
+            else if (f.isShield())
+                faceStr = "SHIELD";
+            else if (f.isHelmet())
+                faceStr = "HELMET";
+            else if (f.isSteal())
+                faceStr = "STEAL";
+            if (f.gold)
+                faceStr += "_GOLD";
+        }
         gs.addLog(String.format("%s %s die #%d %s", who, faceStr, dieIdx + 1, locked ? "LOCK" : "UNLOCK"));
     }
 
@@ -251,8 +264,12 @@ public class BoardPanel extends JPanel {
         p1LockedIdx.clear();
         p2LockedBounds.clear();
         p2LockedIdx.clear();
-        drawDiceSet(g2, gs.p1.getDice(), p1Center, true, p1DiceBounds, p1DiceIdx, p1LockedBounds, p1LockedIdx);
-        drawDiceSet(g2, gs.p2.getDice(), p2Center, false, p2DiceBounds, p2DiceIdx, p2LockedBounds, p2LockedIdx);
+        List<Face> overrideP1 = (resolutionIdx >= 0) ? animFacesP1 : null;
+        List<Face> overrideP2 = (resolutionIdx >= 0) ? animFacesP2 : null;
+        drawDiceSet(g2, gs.p1.getDice(), p1Center, true, p1DiceBounds, p1DiceIdx, p1LockedBounds, p1LockedIdx,
+                overrideP1);
+        drawDiceSet(g2, gs.p2.getDice(), p2Center, false, p2DiceBounds, p2DiceIdx, p2LockedBounds, p2LockedIdx,
+                overrideP2);
 
         // overlay damage flashes
         if (animTicksP1 > 0) {
@@ -381,15 +398,39 @@ public class BoardPanel extends JPanel {
 
     private void drawDiceSet(Graphics2D g2, DiceSet set, Point center, boolean isP1,
             List<Rectangle> unlockedHit, List<Integer> unlockedIdx,
-            List<Rectangle> lockedHit, List<Integer> lockedIdx) {
-        int n = set.size();
+            List<Rectangle> lockedHit, List<Integer> lockedIdx,
+            List<Face> overrideFaces) {
+        var faces = (overrideFaces != null) ? overrideFaces : set.currentFaces();
+        int n = faces.size();
         int die = 36;
         int ring = bowlRadius - 42;
         double angle0 = isP1 ? Math.PI / 2 : -Math.PI / 2;
 
-        // 1) UNLOCK-oltak továbbra is a tálban körben
+        // anim?ci? alatt: kock?k a k?t t?l k?z?tti s?vban, nincs locked sor
+        if (overrideFaces != null) {
+            int gap = 8;
+            int total = n * die + (n - 1) * gap;
+            int startX = center.x - total / 2;
+            int centerY = getHeight() / 2;
+            int spacing = 8;
+            int yP1 = centerY - die - spacing / 2;
+            int yP2 = centerY + spacing / 2;
+            int y = isP1 ? yP1 : yP2;
+            for (int i = 0; i < n; i++) {
+                Face f = faces.get(i);
+                int rx = startX + i * (die + gap);
+                Rectangle r = new Rectangle(rx, y, die, die);
+                boolean hover = (hoverRect != null && hoverRect.equals(r));
+                boolean highlight = shouldHighlight(isP1, i, f);
+                drawDie(g2, r, f, false, hover, highlight);
+                unlockedHit.add(r);
+                unlockedIdx.add(i);
+            }
+            return;
+        }
+
+        // 1) UNLOCK-oltak tov?bbra is a t?lban k?rben
         int u = 0;
-        var faces = set.currentFaces();
         for (int i = 0; i < n; i++) {
             Face f = (i < faces.size()) ? faces.get(i) : null;
             if (!set.isLocked(i)) {
@@ -406,12 +447,7 @@ public class BoardPanel extends JPanel {
             }
         }
 
-        // 2) LOCK-oltak: KÖZÉPRE, a két tál közé, két vízszintes sorba
-        // - felül: játékos (isP1==true)
-        // - alul: AI (isP1==false)
-
-        // gyűjtsük ki a lockolt indexeket, hogy a szélességre valós darabszámmal
-        // számoljunk
+        // 2) LOCK-oltak: k?z?pre, k?t v?zszintes sorba
         java.util.List<Integer> locked = new java.util.ArrayList<>();
         for (int i = 0; i < n; i++)
             if (set.isLocked(i))
@@ -425,12 +461,10 @@ public class BoardPanel extends JPanel {
         int totalW = L * die + (L - 1) * gapX;
         int startX = (getWidth() - totalW) / 2;
 
-        // sorok Y pozíciója középen, a két tál között
-        // sorok Y pozíciója: fixen a két tál közötti sáv közepén
         int centerY = getHeight() / 2;
-        int spacing = 8; // a két sor közti rést itt tudod állítani
-        int yP1 = centerY - die - spacing / 2; // felső sor (You) → h/2 - 40 alapbeállításnál
-        int yP2 = centerY + spacing / 2; // alsó sor (AI) → h/2 + 4 alapbeállításnál
+        int spacing = 8;
+        int yP1 = centerY - die - spacing / 2;
+        int yP2 = centerY + spacing / 2;
 
         int baseY = isP1 ? yP1 : yP2;
 
@@ -450,7 +484,26 @@ public class BoardPanel extends JPanel {
         }
     }
 
+
     private void drawDie(Graphics2D g2, Rectangle r, Face f, boolean locked, boolean hover) {
+        drawDie(g2, r, f, locked, hover, false);
+    }
+
+    private boolean shouldHighlight(boolean isP1, int dieIdx, Face f) {
+        if (resolutionIdx < 0 || resolutionIdx >= resolutionSteps.size() || f == null)
+            return false;
+        ResolutionType type = resolutionSteps.get(resolutionIdx).type();
+        return switch (type) {
+            case MELEE_P1 -> isP1 ? f.isAttackMelee() : f.isShield();
+            case MELEE_P2 -> !isP1 ? f.isAttackMelee() : f.isShield();
+            case RANGED_P1 -> isP1 ? f.isAttackRanged() : f.isHelmet();
+            case RANGED_P2 -> !isP1 ? f.isAttackRanged() : f.isHelmet();
+            case STEAL_P1 -> isP1 && f.isSteal();
+            case STEAL_P2 -> !isP1 && f.isSteal();
+        };
+    }
+
+    private void drawDie(Graphics2D g2, Rectangle r, Face f, boolean locked, boolean hover, boolean highlight) {
         g2.setColor(new Color(235, 235, 235));
         g2.fillRoundRect(r.x, r.y, r.width, r.height, 10, 10);
         float stroke = hover ? 3.5f : 2f;
@@ -459,12 +512,24 @@ public class BoardPanel extends JPanel {
                 : (f != null && f.gold ? new Color(200, 160, 20) : Color.DARK_GRAY);
         if (hover)
             border = border.brighter();
+        if (highlight)
+            border = new Color(220, 80, 40);
         g2.setColor(border);
         g2.drawRoundRect(r.x, r.y, r.width, r.height, 10, 10);
-        String sym = f == null ? "?"
-                : (f.isAttackMelee() ? "⚔"
-                        : f.isAttackRanged() ? "🏹"
-                                : f.isShield() ? "🛡" : f.isHelmet() ? "⛑" : f.isSteal() ? "🖐" : "?");
+        String sym = "?";
+        if (f != null) {
+            if (f.isAttackMelee()) {
+                sym = "⚔";
+            } else if (f.isAttackRanged()) {
+                sym = "🏹";
+            } else if (f.isShield()) {
+                sym = "🛡";
+            } else if (f.isHelmet()) {
+                sym = "⛑";
+            } else if (f.isSteal()) {
+                sym = "🖐";
+            }
+        }
         g2.setColor(Color.BLACK);
         g2.setFont(g2.getFont().deriveFont(Font.BOLD, 18f));
         FontMetrics fm = g2.getFontMetrics();
@@ -475,9 +540,20 @@ public class BoardPanel extends JPanel {
             g2.setColor(new Color(30, 160, 80, 100));
             g2.fillRoundRect(r.x, r.y, r.width, r.height, 10, 10);
         }
+        if (highlight) {
+            g2.setColor(new Color(255, 200, 120, 60));
+            g2.fillRoundRect(r.x - 2, r.y - 2, r.width + 4, r.height + 4, 12, 12);
+        }
         if (hover) {
             g2.setColor(new Color(255, 255, 255, 40));
             g2.fillRoundRect(r.x, r.y, r.width, r.height, 10, 10);
         }
+    }
+
+    private record ResolutionStep(ResolutionType type) {
+    }
+
+    private enum ResolutionType {
+        MELEE_P1, MELEE_P2, RANGED_P1, RANGED_P2, STEAL_P1, STEAL_P2
     }
 }

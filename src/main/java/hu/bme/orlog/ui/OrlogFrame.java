@@ -85,10 +85,10 @@ public class OrlogFrame extends JFrame {
                     int hpBeforeP1 = gs.p1.getHp();
                     engine.resolveRound(gs, f1, f2);
                     ((JButton) e.getSource()).setText("Dobás / Következő");
-                    // trigger anim
+                    // trigger anim sequence (resolution steps + hp flash)
                     int dmgToAI = hpBeforeAI - gs.p2.getHp();
                     int dmgToP1 = hpBeforeP1 - gs.p1.getHp();
-                    board.triggerDamageAnim(dmgToP1, dmgToAI);
+                    board.startResolutionAnim(f1, f2, hpBeforeP1, hpBeforeAI, dmgToP1, dmgToAI);
                     if (gs.isGameOver()) {
                         String winner = gs.p1.getHp() > 0 ? gs.p1.getName() : gs.p2.getName();
                         JOptionPane.showMessageDialog(OrlogFrame.this, "Nyertes: " + winner);
@@ -303,23 +303,17 @@ public class OrlogFrame extends JFrame {
 
     private void aiLockStrategy() {
         var faces = gs.p2.getDice().currentFaces();
-        int melee = 0, ranged = 0, steal = 0, shield = 0, helm = 0, gold = 0;
+        int melee = 0, ranged = 0, steal = 0;
         for (int i = 0; i < faces.size(); i++) {
             Face f = faces.get(i);
             if (f == null)
                 continue;
-            if (f.gold)
-                gold++;
             if (f.isAttackMelee())
                 melee++;
             if (f.isAttackRanged())
                 ranged++;
             if (f.isSteal())
                 steal++;
-            if (f.isShield())
-                shield++;
-            if (f.isHelmet())
-                helm++;
         }
         // Plan: if favor deficit, keep steals; else choose majority between
         // melee/ranged; always keep gold
