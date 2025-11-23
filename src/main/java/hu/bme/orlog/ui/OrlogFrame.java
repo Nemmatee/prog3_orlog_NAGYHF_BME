@@ -60,6 +60,9 @@ public class OrlogFrame extends JFrame {
         var btnRoll = new JButton(new AbstractAction("Dobás / Következő") {
             @Override
             public void actionPerformed(ActionEvent e) {
+                if (board.isAnimating()) {
+                    return;
+                }
                 if (gs.isGameOver()) {
                     JOptionPane.showMessageDialog(OrlogFrame.this, "Játék vége! File > New az újrakezdéshez.");
                     return;
@@ -83,16 +86,40 @@ public class OrlogFrame extends JFrame {
                     var f2 = gs.p2.getDice().currentFaces();
                     int hpBeforeAI = gs.p2.getHp();
                     int hpBeforeP1 = gs.p1.getHp();
+                    int favorBeforeAI = gs.p2.getFavor();
+                    int favorBeforeP1 = gs.p1.getFavor();
                     engine.resolveRound(gs, f1, f2);
                     ((JButton) e.getSource()).setText("Dobás / Következő");
-                    // trigger anim
+                    // trigger anim sequence (resolution steps + hp flash)
                     int dmgToAI = hpBeforeAI - gs.p2.getHp();
                     int dmgToP1 = hpBeforeP1 - gs.p1.getHp();
-                    board.triggerDamageAnim(dmgToP1, dmgToAI);
+                    board.startResolutionAnim(f1, f2, hpBeforeP1, hpBeforeAI, dmgToP1, dmgToAI);
                     if (gs.isGameOver()) {
                         String winner = gs.p1.getHp() > 0 ? gs.p1.getName() : gs.p2.getName();
                         JOptionPane.showMessageDialog(OrlogFrame.this, "Nyertes: " + winner);
                     }
+                    // Részletesebb log a kör kiértékeléséről
+                    int youMeleeDmg = Math.max(0, gs.melee1 - gs.shields2);
+                    int youRangedDmg = Math.max(0, gs.ranged1 - gs.helmets2);
+                    int aiMeleeDmg = Math.max(0, gs.melee2 - gs.shields1);
+                    int aiRangedDmg = Math.max(0, gs.ranged2 - gs.helmets1);
+                    int youSteal = Math.min(engine.stealAmount(engine.countFaces(f1)), favorBeforeAI);
+                    int aiSteal = Math.min(engine.stealAmount(engine.countFaces(f2)), favorBeforeP1);
+                    int youGold = engine.goldCount(f1);
+                    int aiGold = engine.goldCount(f2);
+                    int favorDeltaYou = gs.p1.getFavor() - favorBeforeP1;
+                    int favorDeltaAI = gs.p2.getFavor() - favorBeforeAI;
+                    gs.addLog("Favor összegzés (You/AI): +gold " + youGold + "/" + aiGold
+                            + ", steal " + youSteal + "/" + aiSteal
+                            + ", nettó: " + favorDeltaYou + "/" + favorDeltaAI);
+                    gs.addLog("Összegzés: You összesen " + gs.dmg1 + " sebzés (melee: " + youMeleeDmg
+                            + ", ranged: " + youRangedDmg + ")");
+                    gs.addLog("Összegzés: AI összesen " + gs.dmg2 + " sebzés (melee: " + aiMeleeDmg
+                            + ", ranged: " + aiRangedDmg + ")");
+                    gs.addLog("Részletek: You melee " + gs.melee1 + " vs AI shield " + gs.shields2
+                            + " | You ranged " + gs.ranged1 + " vs AI helmet " + gs.helmets2);
+                    gs.addLog("Részletek: AI melee " + gs.melee2 + " vs You shield " + gs.shields1
+                            + " | AI ranged " + gs.ranged2 + " vs You helmet " + gs.helmets1);
                 }
                 logModel.setLog(gs.log);
                 board.setGameState(gs);
@@ -303,23 +330,17 @@ public class OrlogFrame extends JFrame {
 
     private void aiLockStrategy() {
         var faces = gs.p2.getDice().currentFaces();
-        int melee = 0, ranged = 0, steal = 0, shield = 0, helm = 0, gold = 0;
+        int melee = 0, ranged = 0, steal = 0;
         for (int i = 0; i < faces.size(); i++) {
             Face f = faces.get(i);
             if (f == null)
                 continue;
-            if (f.gold)
-                gold++;
             if (f.isAttackMelee())
                 melee++;
             if (f.isAttackRanged())
                 ranged++;
             if (f.isSteal())
                 steal++;
-            if (f.isShield())
-                shield++;
-            if (f.isHelmet())
-                helm++;
         }
         // Plan: if favor deficit, keep steals; else choose majority between
         // melee/ranged; always keep gold
