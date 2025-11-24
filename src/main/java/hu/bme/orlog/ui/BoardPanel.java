@@ -24,6 +24,15 @@ import hu.bme.orlog.model.Face;
 import hu.bme.orlog.model.GameState;
 import hu.bme.orlog.model.Player;
 
+/**
+ * Visual board panel that renders the game bowls, dice, HP stones and
+ * resolution animations.
+ *
+ * This component paints the current GameState and provides methods to
+ * start the resolution animation sequence. The animation sequence keeps
+ * the visual HP value unchanged until the resolution steps finish so
+ * that the red HP flash and the actual HP decrease happen together.
+ */
 public class BoardPanel extends JPanel {
     private GameState gs;
     private final List<Rectangle> p1DiceBounds = new ArrayList<>();
@@ -133,19 +142,51 @@ public class BoardPanel extends JPanel {
 
     public void setGameState(GameState gs) {
         this.gs = gs;
-        this.prevHp1 = gs.p1.getHp();
-        this.prevHp2 = gs.p2.getHp();
+        // Do not overwrite previous HP while a resolution animation is active.
+        // When starting a resolution animation, startResolutionAnim explicitly
+        // sets prevHp1/prevHp2 to the HP values before damage; calling
+        // setGameState afterwards (from the frame) must not replace them
+        // with the already-updated model HP.
+        if (!isAnimating()) {
+            this.prevHp1 = gs.p1.getHp();
+            this.prevHp2 = gs.p2.getHp();
+        }
     }
+
+    /**
+     * Replace the internal GameState instance displayed by this panel.
+     * The panel will use the provided GameState for subsequent painting
+     * and animations. This method also updates the stored previous HP
+     * values so animations start from a consistent baseline.
+     *
+     * @param gs game state to display
+     */
 
     public boolean isAnimating() {
         return resolutionIdx >= 0 || animTicksP1 > 0 || animTicksP2 > 0 || hpFlashTicks > 0;
     }
+
+    /**
+     * Returns true if a resolution or damage animation is currently active.
+     *
+     * @return true when an animation is running
+     */
 
     public void triggerDamageAnim(int dmgToP1, int dmgToP2) {
         // Kept for backward compatibility; use startResolutionAnim for full sequence
         startResolutionAnim(gs.p1.getDice().currentFaces(), gs.p2.getDice().currentFaces(),
                 gs.p1.getHp(), gs.p2.getHp(), dmgToP1, dmgToP2);
     }
+
+    /**
+     * Convenience entry point to trigger the damage animation only.
+     *
+     * This method exists for compatibility and calls startResolutionAnim
+     * with the current faces and HP values.
+     *
+     * @param dmgToP1 damage applied to player 1
+     * @param dmgToP2 damage applied to player 2
+     */
 
     public void startResolutionAnim(List<Face> p1Faces, List<Face> p2Faces, int hpBeforeP1, int hpBeforeP2,
             int dmgToP1, int dmgToP2) {
@@ -168,6 +209,23 @@ public class BoardPanel extends JPanel {
         resolutionTimer.restart();
         repaint();
     }
+
+    /**
+     * Starts the full resolution animation sequence.
+     *
+     * The sequence visualizes melee, ranged and steal resolution steps in
+     * order, then flashes HP loss and plays the final damage overlay. The
+     * method receives the face lists and the HP values before damage was
+     * applied so the panel can show the previous HP during the sequence
+     * and flip to the reduced HP when the flash starts.
+     *
+     * @param p1Faces faces rolled by player 1
+     * @param p2Faces faces rolled by player 2
+     * @param hpBeforeP1 HP of player 1 before damage
+     * @param hpBeforeP2 HP of player 2 before damage
+     * @param dmgToP1 damage applied to player 1 (after resolution)
+     * @param dmgToP2 damage applied to player 2 (after resolution)
+     */
 
     private Rectangle pickRectAt(int x, int y) {
         for (Rectangle r : p1DiceBounds)
@@ -255,8 +313,12 @@ public class BoardPanel extends JPanel {
         drawBowl(g2, p1Center);
         drawBowl(g2, p2Center);
 
-        drawHpStones(g2, 40, 40, gs.p1.getHp(), prevHp1, hpFlashTicks);
-        drawHpStones(g2, 40, h - 80, gs.p2.getHp(), prevHp2, hpFlashTicks);
+        // During resolution animation show the previous HP value so the
+        // visual decrease happens together with the red flash at the end.
+        int displayHp1 = (resolutionIdx >= 0) ? prevHp1 : gs.p1.getHp();
+        int displayHp2 = (resolutionIdx >= 0) ? prevHp2 : gs.p2.getHp();
+        drawHpStones(g2, 40, 40, displayHp1, prevHp1, hpFlashTicks);
+        drawHpStones(g2, 40, h - 80, displayHp2, prevHp2, hpFlashTicks);
 
         drawFavorStack(g2, w - 160, 40, gs.p1.getFavor());
         drawFavorStack(g2, w - 160, h - 80, gs.p2.getFavor());
