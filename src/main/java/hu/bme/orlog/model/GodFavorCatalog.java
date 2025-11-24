@@ -23,13 +23,19 @@ import static hu.bme.orlog.model.GodFavor.EffectType.TOKENS_PER_STEAL;
 import static hu.bme.orlog.model.GodFavor.Phase.AFTER;
 import static hu.bme.orlog.model.GodFavor.Phase.BEFORE;
 
+/**
+* Registry of all available GodFavor definitions used by the game.
+*
+* This class provides a simple factory method to obtain the full list.
+*/
 public class GodFavorCatalog {
+
     /**
-     * Registry of all available GodFavor definitions used by the game.
+     * Returns a new list containing all built-in GodFavor definitions.
      *
-     * This class provides a simple factory method to obtain the full list.
+     * @return list of GodFavor instances
      */
-    public static List<GodFavor> all(){
+    public static List<GodFavor> all() {
         List<GodFavor> ls = new ArrayList<>();
         ls.add(new GodFavor("Thor's Strike", new int[]{4,8,12}, new int[]{2,5,8}, 6, AFTER, DAMAGE));
         ls.add(new GodFavor("Idun's Rejuvenation", new int[]{4,7,10}, new int[]{2,4,6}, 5, AFTER, HEAL));
