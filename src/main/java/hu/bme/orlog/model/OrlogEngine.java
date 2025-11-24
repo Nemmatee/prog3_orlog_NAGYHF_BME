@@ -5,12 +5,11 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Engine that contains the core Orlog round resolution logic and helpers
+ * for counting faces and computing damage/tokens.
+ */
 public class OrlogEngine {
-
-    /**
-     * Engine that contains the core Orlog round resolution logic and helpers
-     * for counting faces and computing damage/tokens.
-     */
 
     /**
      * Small per-player view for a round to avoid repeated ternaries.
@@ -42,22 +41,52 @@ public class OrlogEngine {
         return sum;
     }
 
+    /**
+     * Returns how many steal faces (including gold) are present in the attack map.
+     *
+     * @param att map of face counts
+     * @return number of steal faces
+     */
     public int stealAmount(Map<Face, Integer> att) {
         return count(att, Face.STEAL, Face.STEAL_GOLD);
     }
 
+    /**
+     * Counts melee faces (including gold) in the provided attack map.
+     *
+     * @param att map of face counts
+     * @return number of melee faces
+     */
     public int melee(Map<Face, Integer> att) {
         return count(att, Face.MELEE, Face.MELEE_GOLD);
     }
 
+    /**
+     * Counts ranged faces (including gold) in the provided attack map.
+     *
+     * @param att map of face counts
+     * @return number of ranged faces
+     */
     public int ranged(Map<Face, Integer> att) {
         return count(att, Face.RANGED, Face.RANGED_GOLD);
     }
 
+    /**
+     * Counts shield faces (including gold) in the provided defense map.
+     *
+     * @param def map of face counts
+     * @return number of shield faces
+     */
     public int shields(Map<Face, Integer> def) {
         return count(def, Face.SHIELD, Face.SHIELD_GOLD);
     }
 
+    /**
+     * Counts helmet faces (including gold) in the provided defense map.
+     *
+     * @param def map of face counts
+     * @return number of helmet faces
+     */
     public int helmets(Map<Face, Integer> def) {
         return count(def, Face.HELMET, Face.HELMET_GOLD);
     }
@@ -98,6 +127,15 @@ public class OrlogEngine {
         return removed;
     }
 
+    /**
+     * Resolves a full round given the current GameState and the faces rolled
+     * by both players. This method applies before/after favors, computes
+     * damage and favor transfers, updates GameState fields and logs the round.
+     *
+     * @param gs current GameState to update
+     * @param p1Faces faces rolled by player 1
+     * @param p2Faces faces rolled by player 2
+     */
     public void resolveRound(GameState gs, List<Face> p1Faces, List<Face> p2Faces) {
         Map<Face, Integer> a = countFaces(p1Faces);
         Map<Face, Integer> b = countFaces(p2Faces);
@@ -153,16 +191,6 @@ public class OrlogEngine {
         gs.p1.getDice().clearLocks();
         gs.p2.getDice().clearLocks();
     }
-    /**
-     * Resolves a full round given the current GameState and the faces rolled
-     * by both players. This method applies before/after favors, computes
-     * damage and favor transfers, updates GameState fields and logs the round.
-     *
-     * @param gs current GameState to update
-     * @param p1Faces faces rolled by player 1
-     * @param p2Faces faces rolled by player 2
-     */
-    
 
     private void spend(Player p, GodFavor f, int tier) {
         p.spendFavor(f.costs[tier]);

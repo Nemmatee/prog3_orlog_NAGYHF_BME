@@ -4,11 +4,11 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Represents a player in the game and stores player-specific state such as
+ * name, health points (HP), favor (tokens), dice set and chosen god favor.
+ */
 public class Player implements Serializable {
-    /**
-     * Represents a player in the game and stores player-specific state such as
-     * name, health points (HP), favor (tokens), dice set and chosen god favor.
-     */
     private String name;
     private int hp = 15;
     private int favor = 0;
@@ -22,6 +22,11 @@ public class Player implements Serializable {
         this.dice = dice;
     }
 
+    /**
+     * Returns the player's name.
+     *
+     * @return player's name
+     */
     public String getName() {
         return name;
     }
@@ -93,18 +98,38 @@ public class Player implements Serializable {
         this.chosenTier = tier;
     }
 
+    /**
+     * Returns the currently chosen favor for this player, or null if none.
+     *
+     * @return chosen GodFavor or null
+     */
     public GodFavor getChosenFavor() {
         return chosenFavor;
     }
 
+    /**
+     * Returns the chosen tier index for the player's chosen favor.
+     *
+     * @return chosen tier index (0..2)
+     */
     public int getChosenTier() {
         return chosenTier;
     }
 
+    /**
+     * Returns the player's saved loadout of GodFavors.
+     *
+     * @return list of GodFavor in the player's loadout
+     */
     public List<GodFavor> getLoadout() {
         return loadout;
     }
 
+    /**
+     * Replaces the player's loadout with the supplied list.
+     *
+     * @param favs new loadout (null clears the loadout)
+     */
     public void setLoadout(List<GodFavor> favs) {
         loadout.clear();
         if (favs != null)
