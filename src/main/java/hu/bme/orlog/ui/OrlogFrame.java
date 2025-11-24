@@ -34,6 +34,14 @@ import hu.bme.orlog.model.GodFavorCatalog;
 import hu.bme.orlog.model.OrlogEngine;
 import hu.bme.orlog.model.Player;
 
+/**
+ * Main application window that composes the board, log and control
+ * widgets, and coordinates game actions between the UI and the engine.
+ *
+ * The frame owns a GameState instance and invokes the OrlogEngine to
+ * resolve rounds. It also triggers the board animations and updates the
+ * log model.
+ */
 public class OrlogFrame extends JFrame {
     private final SaveLoadService io = new SaveLoadService();
     private final OrlogEngine engine = new OrlogEngine();
@@ -41,6 +49,10 @@ public class OrlogFrame extends JFrame {
     private final BoardPanel board;
     private final LogTableModel logModel = new LogTableModel();
 
+    /**
+     * Creates the main application frame, initializes a fresh GameState
+     * and builds the UI layout.
+     */
     public OrlogFrame() {
         super("Orlog (Swing) — v6");
         setDefaultCloseOperation(EXIT_ON_CLOSE);

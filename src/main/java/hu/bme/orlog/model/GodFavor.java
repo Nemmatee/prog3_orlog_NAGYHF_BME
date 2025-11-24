@@ -9,10 +9,12 @@ import java.io.Serializable;
  * phase (BEFORE/AFTER) and the effect type.
  */
 public class GodFavor implements Serializable {
+    /** Phase when the favor effect is applied. */
     public enum Phase {
         BEFORE, AFTER
     }
 
+    /** Effect type identifiers used to determine what the favor does. */
     public enum EffectType {
         DAMAGE, HEAL, GAIN_TOKENS, STEAL_TOKENS,
         REMOVE_OPP_HELMETS, IGNORE_OPP_RANGED_BLOCKS,
@@ -23,13 +25,29 @@ public class GodFavor implements Serializable {
         BAN_OPP_DICE_THIS_ROUND
     }
 
+    /** Human readable favor name */
     public final String name;
+    /** Costs per tier for this favor */
     public final int[] costs;
+    /** Effect magnitudes per tier for this favor */
     public final int[] magnitudes;
+    /** Priority used to order before/after effects */
     public final int priority;
+    /** Phase when this favor applies (BEFORE or AFTER) */
     public final Phase phase;
+    /** Effect type enum describing the favor's behavior */
     public final EffectType type;
 
+    /**
+     * Constructs a GodFavor instance.
+     *
+     * @param name human-readable name
+     * @param costs costs per tier
+     * @param magnitudes effect magnitudes per tier
+     * @param priority ordering priority for simultaneous effects
+     * @param phase phase when the favor applies
+     * @param type effect type identifier
+     */
     public GodFavor(String name, int[] costs, int[] magnitudes, int priority, Phase phase, EffectType type) {
         this.name = name;
         this.costs = costs;
