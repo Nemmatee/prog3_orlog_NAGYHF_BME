@@ -190,23 +190,23 @@ public class BoardPanel extends JPanel {
                 gs.p1.getHp(), gs.p2.getHp(), dmgToP1, dmgToP2);
     }
 
-        /**
-         * Starts the full resolution animation sequence.
-         *
-         * The sequence visualizes melee, ranged and steal resolution steps in
-         * order, then flashes HP loss and plays the final damage overlay. The
-         * method receives the face lists and the HP values before damage was
-         * applied so the panel can show the previous HP during the sequence
-         * and flip to the reduced HP when the flash starts.
-         *
-         * @param p1Faces faces rolled by player 1
-         * @param p2Faces faces rolled by player 2
-         * @param hpBeforeP1 HP of player 1 before damage
-         * @param hpBeforeP2 HP of player 2 before damage
-         * @param dmgToP1 damage applied to player 1 (after resolution)
-         * @param dmgToP2 damage applied to player 2 (after resolution)
-         */
-        public void startResolutionAnim(List<Face> p1Faces, List<Face> p2Faces, int hpBeforeP1, int hpBeforeP2,
+    /**
+     * Starts the full resolution animation sequence.
+     *
+     * The sequence visualizes melee, ranged and steal resolution steps in
+     * order, then flashes HP loss and plays the final damage overlay. The
+     * method receives the face lists and the HP values before damage was
+     * applied so the panel can show the previous HP during the sequence
+     * and flip to the reduced HP when the flash starts.
+     *
+     * @param p1Faces    faces rolled by player 1
+     * @param p2Faces    faces rolled by player 2
+     * @param hpBeforeP1 HP of player 1 before damage
+     * @param hpBeforeP2 HP of player 2 before damage
+     * @param dmgToP1    damage applied to player 1 (after resolution)
+     * @param dmgToP2    damage applied to player 2 (after resolution)
+     */
+    public void startResolutionAnim(List<Face> p1Faces, List<Face> p2Faces, int hpBeforeP1, int hpBeforeP2,
             int dmgToP1, int dmgToP2) {
         this.animFacesP1 = new ArrayList<>(p1Faces);
         this.animFacesP2 = new ArrayList<>(p2Faces);
@@ -227,23 +227,6 @@ public class BoardPanel extends JPanel {
         resolutionTimer.restart();
         repaint();
     }
-
-    /**
-     * Starts the full resolution animation sequence.
-     *
-     * The sequence visualizes melee, ranged and steal resolution steps in
-     * order, then flashes HP loss and plays the final damage overlay. The
-     * method receives the face lists and the HP values before damage was
-     * applied so the panel can show the previous HP during the sequence
-     * and flip to the reduced HP when the flash starts.
-     *
-     * @param p1Faces faces rolled by player 1
-     * @param p2Faces faces rolled by player 2
-     * @param hpBeforeP1 HP of player 1 before damage
-     * @param hpBeforeP2 HP of player 2 before damage
-     * @param dmgToP1 damage applied to player 1 (after resolution)
-     * @param dmgToP2 damage applied to player 2 (after resolution)
-     */
 
     /**
      * Returns the rectangle for a dice or locked slot at the given
@@ -314,7 +297,7 @@ public class BoardPanel extends JPanel {
     /**
      * Log a lock/unlock toggle action for a player's die.
      *
-     * @param p player whose die changed
+     * @param p      player whose die changed
      * @param dieIdx index of the die that was toggled
      */
     private void logToggle(Player p, int dieIdx) {
@@ -411,8 +394,8 @@ public class BoardPanel extends JPanel {
      * side of the board.
      *
      * @param g2 graphics context
-     * @param w total panel width
-     * @param h total panel height
+     * @param w  total panel width
+     * @param h  total panel height
      */
     private void drawBars(Graphics2D g2, int w, int h) {
         // jobb-középre, a két tál közé
@@ -448,14 +431,14 @@ public class BoardPanel extends JPanel {
     /**
      * Draw a single attacker/defender bar with the provided counts.
      *
-     * @param g2 graphics context
-     * @param x left coordinate
-     * @param y top coordinate
+     * @param g2    graphics context
+     * @param x     left coordinate
+     * @param y     top coordinate
      * @param label bar label
-     * @param att attacker count
-     * @param def defender count
-     * @param W bar width
-     * @param H bar height
+     * @param att   attacker count
+     * @param def   defender count
+     * @param W     bar width
+     * @param H     bar height
      */
     private void drawBar(Graphics2D g2, int x, int y, String label, int att, int def, int W, int H) {
         g2.setColor(Color.WHITE);
@@ -477,12 +460,12 @@ public class BoardPanel extends JPanel {
     /**
      * Draw a damage bar and label.
      *
-     * @param g2 graphics context
-     * @param x left coordinate
-     * @param y top coordinate
+     * @param g2    graphics context
+     * @param x     left coordinate
+     * @param y     top coordinate
      * @param label label text
-     * @param dmg damage value
-     * @param W bar width
+     * @param dmg   damage value
+     * @param W     bar width
      */
     private void drawDamage(Graphics2D g2, int x, int y, String label, int dmg, int W) {
         g2.setColor(Color.WHITE);
@@ -499,7 +482,7 @@ public class BoardPanel extends JPanel {
      * Draw a single bowl at the provided center point.
      *
      * @param g2 graphics context
-     * @param c center point of the bowl
+     * @param c  center point of the bowl
      */
     private void drawBowl(Graphics2D g2, Point c) {
         g2.setColor(new Color(60, 50, 40));
@@ -513,11 +496,11 @@ public class BoardPanel extends JPanel {
      * Draw the HP stones for a player and the red flash for recently
      * lost HP based on prevHp and the current hp value.
      *
-     * @param g2 graphics context
-     * @param x left coordinate
-     * @param y top coordinate
-     * @param hp current HP to display
-     * @param prevHp previous HP value used to compute the flash
+     * @param g2         graphics context
+     * @param x          left coordinate
+     * @param y          top coordinate
+     * @param hp         current HP to display
+     * @param prevHp     previous HP value used to compute the flash
      * @param flashTicks remaining flash animation ticks
      */
     private void drawHpStones(Graphics2D g2, int x, int y, int hp, int prevHp, int flashTicks) {
@@ -548,9 +531,9 @@ public class BoardPanel extends JPanel {
     /**
      * Draw a stack of favor tokens at the given position.
      *
-     * @param g2 graphics context
-     * @param x left coordinate
-     * @param y top coordinate
+     * @param g2     graphics context
+     * @param x      left coordinate
+     * @param y      top coordinate
      * @param tokens number of tokens to render
      */
     private void drawFavorStack(Graphics2D g2, int x, int y, int tokens) {
@@ -570,23 +553,23 @@ public class BoardPanel extends JPanel {
         }
     }
 
-        /**
-         * Draws the dice for a player either in the bowl layout or in the
-         * resolution strip when overrideFaces is provided. Populates the hit
-         * detection lists with rectangles and indices.
-         *
-         * @param g2 graphics context
-         * @param set dice set to render
-         * @param center bowl center point
-         * @param isP1 true for player 1 layout, false for player 2
-         * @param unlockedHit list to populate with unlocked dice rectangles
-         * @param unlockedIdx list to populate with unlocked dice indices
-         * @param lockedHit list to populate with locked dice rectangles
-         * @param lockedIdx list to populate with locked dice indices
-         * @param overrideFaces when non-null, use this face list for the
-         *                      resolution animation strip
-         */
-        private void drawDiceSet(Graphics2D g2, DiceSet set, Point center, boolean isP1,
+    /**
+     * Draws the dice for a player either in the bowl layout or in the
+     * resolution strip when overrideFaces is provided. Populates the hit
+     * detection lists with rectangles and indices.
+     *
+     * @param g2            graphics context
+     * @param set           dice set to render
+     * @param center        bowl center point
+     * @param isP1          true for player 1 layout, false for player 2
+     * @param unlockedHit   list to populate with unlocked dice rectangles
+     * @param unlockedIdx   list to populate with unlocked dice indices
+     * @param lockedHit     list to populate with locked dice rectangles
+     * @param lockedIdx     list to populate with locked dice indices
+     * @param overrideFaces when non-null, use this face list for the
+     *                      resolution animation strip
+     */
+    private void drawDiceSet(Graphics2D g2, DiceSet set, Point center, boolean isP1,
             List<Rectangle> unlockedHit, List<Integer> unlockedIdx,
             List<Rectangle> lockedHit, List<Integer> lockedIdx,
             List<Face> overrideFaces) {
@@ -674,15 +657,14 @@ public class BoardPanel extends JPanel {
         }
     }
 
-
     /**
      * Overload that draws a die without explicit highlight flag.
      *
-     * @param g2 graphics context
-     * @param r rectangle to draw into
-     * @param f face value or null
+     * @param g2     graphics context
+     * @param r      rectangle to draw into
+     * @param f      face value or null
      * @param locked whether the die is locked
-     * @param hover whether the mouse hovers this die
+     * @param hover  whether the mouse hovers this die
      */
     private void drawDie(Graphics2D g2, Rectangle r, Face f, boolean locked, boolean hover) {
         drawDie(g2, r, f, locked, hover, false);
@@ -692,9 +674,9 @@ public class BoardPanel extends JPanel {
      * Determine whether the given face should be visually highlighted
      * for the current resolution step.
      *
-     * @param isP1 true when checking player 1's die
+     * @param isP1   true when checking player 1's die
      * @param dieIdx index of the die
-     * @param f face to inspect
+     * @param f      face to inspect
      * @return true when the face should be highlighted
      */
     private boolean shouldHighlight(boolean isP1, int dieIdx, Face f) {
@@ -714,11 +696,11 @@ public class BoardPanel extends JPanel {
     /**
      * Draw a single die rectangle with the provided face and state flags.
      *
-     * @param g2 graphics context
-     * @param r rectangle to draw into
-     * @param f face value or null
-     * @param locked whether the die is locked
-     * @param hover whether the mouse hovers this die
+     * @param g2        graphics context
+     * @param r         rectangle to draw into
+     * @param f         face value or null
+     * @param locked    whether the die is locked
+     * @param hover     whether the mouse hovers this die
      * @param highlight whether the die should be highlighted (resolution effect)
      */
     private void drawDie(Graphics2D g2, Rectangle r, Face f, boolean locked, boolean hover, boolean highlight) {

@@ -24,20 +24,14 @@ public class LogTableModel extends AbstractTableModel {
         fireTableDataChanged();
     }
 
-    @Override
-    public int getRowCount() {
-        return rows.size();
-    }
-
     /**
      * Returns the number of rows (log lines) currently stored.
      *
      * @return row count
      */
-
     @Override
-    public int getColumnCount() {
-        return 1;
+    public int getRowCount() {
+        return rows.size();
     }
 
     /**
@@ -45,10 +39,9 @@ public class LogTableModel extends AbstractTableModel {
      *
      * @return column count
      */
-
     @Override
-    public String getColumnName(int c) {
-        return "Log";
+    public int getColumnCount() {
+        return 1;
     }
 
     /**
@@ -57,10 +50,9 @@ public class LogTableModel extends AbstractTableModel {
      * @param c column index
      * @return column name
      */
-
     @Override
-    public Object getValueAt(int r, int c) {
-        return rows.get(r);
+    public String getColumnName(int c) {
+        return "Log";
     }
 
     /**
@@ -71,4 +63,8 @@ public class LogTableModel extends AbstractTableModel {
      * @param c column index
      * @return cell value (String)
      */
+    @Override
+    public Object getValueAt(int r, int c) {
+        return rows.get(r);
+    }
 }
