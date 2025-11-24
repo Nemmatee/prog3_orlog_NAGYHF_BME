@@ -10,6 +10,9 @@ public enum Face {
     HELMET(false), HELMET_GOLD(true),
     STEAL(false), STEAL_GOLD(true);
 
+    /**
+     * True when this face is the gold (upgraded) variant.
+     */
     public final boolean gold;
 
     Face(boolean gold) {

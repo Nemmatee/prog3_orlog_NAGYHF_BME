@@ -11,6 +11,12 @@ public class Die implements Serializable {
     private final Random rng;
     private Face face;
 
+    /**
+     * Creates a Die that uses the provided Random instance for rolling.
+     * If rng is null, a new Random is created.
+     *
+     * @param rng random number source or null
+     */
     public Die(Random rng) {
         this.rng = rng == null ? new Random() : rng;
     }

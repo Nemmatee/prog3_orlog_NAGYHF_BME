@@ -17,6 +17,12 @@ public class Player implements Serializable {
     private int chosenTier = 0; // 0..2
     private final List<GodFavor> loadout = new ArrayList<>(3);
 
+    /**
+     * Creates a new Player with the given name and dice set.
+     *
+     * @param name player's display name
+     * @param dice dice set owned by the player
+     */
     public Player(String name, DiceSet dice) {
         this.name = name;
         this.dice = dice;

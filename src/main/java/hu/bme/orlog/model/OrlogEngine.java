@@ -33,6 +33,13 @@ public class OrlogEngine {
         return m;
     }
 
+    /**
+     * Sums the counts for the provided face types from the given map.
+     *
+     * @param m map of face counts
+     * @param faces face types to include in the sum
+     * @return total count for the specified faces
+     */
     private int count(Map<Face, Integer> m, Face... faces) {
         int sum = 0;
         for (Face f : faces) {
@@ -40,6 +47,7 @@ public class OrlogEngine {
         }
         return sum;
     }
+    
 
     /**
      * Returns how many steal faces (including gold) are present in the attack map.
@@ -192,10 +200,29 @@ public class OrlogEngine {
         gs.p2.getDice().clearLocks();
     }
 
+    /**
+     * Deducts the favor cost for the chosen GodFavor from the given player.
+     *
+     * @param p player who pays the cost
+     * @param f chosen GodFavor definition
+     * @param tier tier index of the chosen favor
+     */
     private void spend(Player p, GodFavor f, int tier) {
         p.spendFavor(f.costs[tier]);
     }
 
+    /**
+     * Applies all chosen God favors that trigger in the BEFORE phase.
+     *
+     * Favors are resolved in priority order. A favor may modify the face
+     * count maps, affect player favor or tokens, or otherwise mutate the
+     * GameState. This method will call {@code applyBeforeFavor} for each
+     * actor in the round.
+     *
+     * @param gs current game state
+     * @param a face counts for player 1
+     * @param b face counts for player 2
+     */
     private void applyBeforeFavors(GameState gs, Map<Face, Integer> a, Map<Face, Integer> b) {
         List<RoundCtx> ctxs = List.of(new RoundCtx(gs.p1, gs.p2, a, b, 0), new RoundCtx(gs.p2, gs.p1, b, a, 0));
         ctxs.stream().sorted(Comparator.comparingInt(ctx -> {
@@ -204,6 +231,20 @@ public class OrlogEngine {
         })).forEach(ctx -> applyBeforeFavor(gs, ctx));
     }
 
+    /**
+     * Applies all chosen God favors that trigger in the AFTER phase.
+     *
+     * The provided damage values are used to populate the RoundCtx so favors
+     * that depend on damage taken can compute tokens or healing correctly.
+     * Favors are resolved in priority order and applied via
+     * {@code applyAfterFavor}.
+     *
+     * @param gs current game state
+     * @param a face counts for player 1
+     * @param b face counts for player 2
+     * @param dmg1 damage dealt by player 1 to player 2
+     * @param dmg2 damage dealt by player 2 to player 1
+     */
     private void applyAfterFavors(GameState gs, Map<Face, Integer> a, Map<Face, Integer> b, int dmg1, int dmg2) {
         List<RoundCtx> ctxs = List.of(
                 new RoundCtx(gs.p1, gs.p2, a, b, dmg2),
@@ -215,6 +256,16 @@ public class OrlogEngine {
         })).forEach(ctx -> applyAfterFavor(gs, ctx));
     }
 
+    /**
+     * Applies a single BEFORE-phase favor for the given round context.
+     *
+     * This checks affordability and the favor phase before executing the
+     * favor's effect. The method may modify the face maps or GameState and
+     * will log the action to the GameState.
+     *
+     * @param gs current game state
+     * @param ctx round context containing actor, opponent and face maps
+     */
     private void applyBeforeFavor(GameState gs, RoundCtx ctx) {
         GodFavor f = ctx.me().getChosenFavor();
         int tier = ctx.me().getChosenTier();
@@ -299,6 +350,16 @@ public class OrlogEngine {
         }
     }
 
+    /**
+     * Applies a single AFTER-phase favor for the given round context.
+     *
+     * AFTER-phase favors may depend on the damage numbers, so the
+     * RoundCtx carries the damage taken value for proper computation.
+     * This method will deduct costs, apply effects and write a log entry.
+     *
+     * @param gs current game state
+     * @param ctx round context containing actor, opponent, face maps and damage taken
+     */
     private void applyAfterFavor(GameState gs, RoundCtx ctx) {
         GodFavor f = ctx.me().getChosenFavor();
         int tier = ctx.me().getChosenTier();

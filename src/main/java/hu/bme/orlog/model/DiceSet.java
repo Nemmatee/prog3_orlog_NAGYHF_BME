@@ -14,6 +14,12 @@ public class DiceSet implements Serializable {
     private final List<Die> dice;
     private final boolean[] locked;
 
+    /**
+     * Creates a DiceSet with the given number of dice and a Random source.
+     *
+     * @param n number of dice
+     * @param rng random number source (may be null)
+     */
     public DiceSet(int n, Random rng) {
         dice = new ArrayList<>(n);
         locked = new boolean[n];
