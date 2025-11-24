@@ -1,5 +1,8 @@
 package hu.bme.orlog.model;
 
+/**
+ * Represents a single die face and whether it is the gold (upgraded) variant.
+ */
 public enum Face {
     MELEE(false), MELEE_GOLD(true),
     RANGED(false), RANGED_GOLD(true),

@@ -2,6 +2,12 @@ package hu.bme.orlog.model;
 
 import java.io.Serializable;
 
+/**
+ * Represents a selectable god favor (ability) that players can use during a round.
+ *
+ * Stores the favor name, costs per tier, magnitude per tier, priority,
+ * phase (BEFORE/AFTER) and the effect type.
+ */
 public class GodFavor implements Serializable {
     public enum Phase {
         BEFORE, AFTER
@@ -33,6 +39,11 @@ public class GodFavor implements Serializable {
         this.type = type;
     }
 
+    /**
+     * Returns a short human readable representation of the favor including its base costs.
+     *
+     * @return short description containing the name and tier costs
+     */
     @Override
     public String toString() {
         return name + " [" + costs[0] + "/" + costs[1] + "/" + costs[2] + "]";

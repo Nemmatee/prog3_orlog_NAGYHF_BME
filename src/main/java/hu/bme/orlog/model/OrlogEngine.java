@@ -8,10 +8,22 @@ import java.util.Map;
 public class OrlogEngine {
 
     /**
+     * Engine that contains the core Orlog round resolution logic and helpers
+     * for counting faces and computing damage/tokens.
+     */
+
+    /**
      * Small per-player view for a round to avoid repeated ternaries.
      */
     private record RoundCtx(Player me, Player opp, Map<Face, Integer> self, Map<Face, Integer> enemy, int dmgTaken) {}
 
+    /**
+     * Counts occurrences of each Face in the provided list and returns a map
+     * from Face to its count.
+     *
+     * @param faces list of faces to count
+     * @return map with counts for each face type
+     */
     public Map<Face, Integer> countFaces(List<Face> faces) {
         Map<Face, Integer> m = new EnumMap<>(Face.class);
         for (Face f : faces) {
@@ -50,6 +62,13 @@ public class OrlogEngine {
         return count(def, Face.HELMET, Face.HELMET_GOLD);
     }
 
+
+    /**
+     * Returns how many gold faces are present in the given list.
+     *
+     * @param faces list of faces to inspect
+     * @return number of gold faces
+     */
     public int goldCount(List<Face> faces) {
         int c = 0;
         for (Face f : faces) {
@@ -134,6 +153,16 @@ public class OrlogEngine {
         gs.p1.getDice().clearLocks();
         gs.p2.getDice().clearLocks();
     }
+    /**
+     * Resolves a full round given the current GameState and the faces rolled
+     * by both players. This method applies before/after favors, computes
+     * damage and favor transfers, updates GameState fields and logs the round.
+     *
+     * @param gs current GameState to update
+     * @param p1Faces faces rolled by player 1
+     * @param p2Faces faces rolled by player 2
+     */
+    
 
     private void spend(Player p, GodFavor f, int tier) {
         p.spendFavor(f.costs[tier]);

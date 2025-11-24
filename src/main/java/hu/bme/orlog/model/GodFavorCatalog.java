@@ -2,10 +2,33 @@ package hu.bme.orlog.model;
 
 import java.util.ArrayList;
 import java.util.List;
-import static hu.bme.orlog.model.GodFavor.EffectType.*;
-import static hu.bme.orlog.model.GodFavor.Phase.*;
+
+import static hu.bme.orlog.model.GodFavor.EffectType.BAN_OPP_DICE_THIS_ROUND;
+import static hu.bme.orlog.model.GodFavor.EffectType.BONUS_MAJORITY;
+import static hu.bme.orlog.model.GodFavor.EffectType.BONUS_PER_RANGED;
+import static hu.bme.orlog.model.GodFavor.EffectType.DAMAGE;
+import static hu.bme.orlog.model.GodFavor.EffectType.DESTROY_OPP_TOKENS_PER_ARROW;
+import static hu.bme.orlog.model.GodFavor.EffectType.DOUBLE_BLOCKS;
+import static hu.bme.orlog.model.GodFavor.EffectType.GAIN_TOKENS;
+import static hu.bme.orlog.model.GodFavor.EffectType.HEAL;
+import static hu.bme.orlog.model.GodFavor.EffectType.HEAL_PER_BLOCKED;
+import static hu.bme.orlog.model.GodFavor.EffectType.HEAL_PER_INCOMING_MELEE;
+import static hu.bme.orlog.model.GodFavor.EffectType.HEAL_PER_OPP_FAVOR_SPENT;
+import static hu.bme.orlog.model.GodFavor.EffectType.IGNORE_OPP_RANGED_BLOCKS;
+import static hu.bme.orlog.model.GodFavor.EffectType.MULTIPLY_MELEE;
+import static hu.bme.orlog.model.GodFavor.EffectType.REDUCE_OPP_FAVOR_LEVEL;
+import static hu.bme.orlog.model.GodFavor.EffectType.REMOVE_OPP_HELMETS;
+import static hu.bme.orlog.model.GodFavor.EffectType.TOKENS_PER_DAMAGE_TAKEN;
+import static hu.bme.orlog.model.GodFavor.EffectType.TOKENS_PER_STEAL;
+import static hu.bme.orlog.model.GodFavor.Phase.AFTER;
+import static hu.bme.orlog.model.GodFavor.Phase.BEFORE;
 
 public class GodFavorCatalog {
+    /**
+     * Registry of all available GodFavor definitions used by the game.
+     *
+     * This class provides a simple factory method to obtain the full list.
+     */
     public static List<GodFavor> all(){
         List<GodFavor> ls = new ArrayList<>();
         ls.add(new GodFavor("Thor's Strike", new int[]{4,8,12}, new int[]{2,5,8}, 6, AFTER, DAMAGE));

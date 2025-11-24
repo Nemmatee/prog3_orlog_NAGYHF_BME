@@ -5,6 +5,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Player implements Serializable {
+    /**
+     * Represents a player in the game and stores player-specific state such as
+     * name, health points (HP), favor (tokens), dice set and chosen god favor.
+     */
     private String name;
     private int hp = 15;
     private int favor = 0;
@@ -22,30 +26,68 @@ public class Player implements Serializable {
         return name;
     }
 
+    /**
+     * Returns the player's current HP.
+     *
+     * @return current health points
+     */
     public int getHp() {
         return hp;
     }
 
+    /**
+     * Returns the player's current favor (token) count.
+     *
+     * @return favor tokens available to the player
+     */
     public int getFavor() {
         return favor;
     }
 
+    /**
+     * Adds the given number of favor tokens to the player.
+     *
+     * @param n number of tokens to add (may be negative)
+     */
     public void addFavor(int n) {
         favor += n;
     }
 
+    /**
+     * Spends up to the given number of favor tokens; the player's favor will
+     * never drop below zero.
+     *
+     * @param n number of tokens to spend
+     */
     public void spendFavor(int n) {
         favor = Math.max(0, favor - n);
     }
 
+    /**
+     * Applies damage to the player. HP will not drop below zero. A negative
+     * value heals the player.
+     *
+     * @param n damage amount (negative to heal)
+     */
     public void damage(int n) {
         hp = Math.max(0, hp - n);
     }
 
+    /**
+     * Returns the DiceSet owned by the player.
+     *
+     * @return player's DiceSet
+     */
     public DiceSet getDice() {
         return dice;
     }
 
+    /**
+     * Sets the chosen favor and tier for this player for the current round.
+     *
+     * @param f chosen GodFavor (or null to choose none)
+     * @param tier chosen tier index (0..2)
+     */
     public void chooseFavor(GodFavor f, int tier) {
         this.chosenFavor = f;
         this.chosenTier = tier;

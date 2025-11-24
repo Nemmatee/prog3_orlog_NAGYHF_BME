@@ -6,6 +6,10 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
+/**
+ * Represents a collection of dice belonging to a player, with the ability to
+ * lock/unlock individual dice and roll unlocked dice.
+ */
 public class DiceSet implements Serializable {
     private final List<Die> dice;
     private final boolean[] locked;
@@ -17,6 +21,12 @@ public class DiceSet implements Serializable {
             dice.add(new Die(rng));
     }
 
+    /**
+     * Rolls all unlocked dice and returns the resulting faces in order.
+     * Locked dice keep their previous face.
+     *
+     * @return list of faces after rolling unlocked dice
+     */
     public List<Face> rollUnlocked() {
         List<Face> faces = new ArrayList<>(dice.size());
         for (int i = 0; i < dice.size(); i++) {
@@ -48,6 +58,11 @@ public class DiceSet implements Serializable {
         return dice.size();
     }
 
+    /**
+     * Returns the currently shown faces for all dice without altering state.
+     *
+     * @return list of current faces (may contain null for unrolled dice)
+     */
     public List<Face> currentFaces() {
         List<Face> fs = new ArrayList<>(dice.size());
         for (Die d : dice)
