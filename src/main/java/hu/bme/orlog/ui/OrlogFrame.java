@@ -163,6 +163,11 @@ public class OrlogFrame extends JFrame {
         add(right, BorderLayout.EAST);
     }
 
+    /**
+     * Build the top menu bar with File and Help menus.
+     *
+     * @return constructed JMenuBar
+     */
     private JMenuBar buildMenu() {
         var mb = new JMenuBar();
         var file = new JMenu("File");
@@ -222,6 +227,10 @@ public class OrlogFrame extends JFrame {
         return mb;
     }
 
+    /**
+     * Ensure both players have exactly three selected God favors. If not,
+     * prompt the user to pick and set default AI loadout.
+     */
     private void ensureLoadoutsSelected() {
         if (gs.p1.getLoadout().size() == 3 && gs.p2.getLoadout().size() == 3)
             return;
@@ -235,6 +244,16 @@ public class OrlogFrame extends JFrame {
         gs.addLog("Loadout kiválasztva. You: " + gs.p1.getLoadout() + " | AI: " + gs.p2.getLoadout());
     }
 
+    /**
+     * Show a dialog allowing the human player to pick exactly three God
+     * favors from the provided catalog. The method blocks until a valid
+     * selection is made and returns the chosen list.
+     *
+     * @param parent parent component for the dialog
+     * @param title dialog title
+     * @param catalog available favors
+     * @return list of exactly three selected GodFavor instances
+     */
     private List<GodFavor> selectThreeFavorsDialog(Component parent, String title, List<GodFavor> catalog) {
         while (true) {
             JPanel panel = new JPanel(new BorderLayout());
@@ -261,6 +280,15 @@ public class OrlogFrame extends JFrame {
         }
     }
 
+    /**
+     * Prompt the given player to choose a God Favor and tier for the
+     * current round. Validates affordability and updates the player's
+     * chosen favor on success.
+     *
+     * @param parent parent component for dialogs
+     * @param title dialog title
+     * @param p player choosing the favor
+     */
     private void chooseFavorForRound(Component parent, String title, Player p) {
         ensureLoadoutsSelected();
         List<GodFavor> load = p.getLoadout();
@@ -308,6 +336,10 @@ public class OrlogFrame extends JFrame {
         }
     }
 
+    /**
+     * Simple AI decision routine to pick one favor and tier from its
+     * loadout based on heuristic scoring.
+     */
     private void aiChooseFavor() {
         Player ai = gs.p2;
         List<GodFavor> load = ai.getLoadout();
@@ -340,6 +372,11 @@ public class OrlogFrame extends JFrame {
             gs.addLog("AI favor: " + best.name + " (Tier " + (bestTier + 1) + ")");
     }
 
+    /**
+     * Light-weight AI lock strategy: counts face types and decides which
+     * faces to keep locked for the next roll, with basic defensive
+     * heuristics.
+     */
     private void aiLockStrategy() {
         var faces = gs.p2.getDice().currentFaces();
         int melee = 0, ranged = 0, steal = 0;
@@ -385,6 +422,11 @@ public class OrlogFrame extends JFrame {
         }
     }
 
+    /**
+     * Show a simple error dialog and print the stack trace to the console.
+     *
+     * @param ex exception to display
+     */
     private void showErr(Exception ex) {
         ex.printStackTrace();
         JOptionPane.showMessageDialog(this, ex.toString(), "Hiba", JOptionPane.ERROR_MESSAGE);
