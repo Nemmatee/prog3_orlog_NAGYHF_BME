@@ -63,6 +63,11 @@ public class BoardPanel extends JPanel {
     private final Timer animTimer;
     private final Timer resolutionTimer;
 
+    /**
+     * Create a BoardPanel bound to the provided GameState.
+     *
+     * @param gs initial game state to display
+     */
     public BoardPanel(GameState gs) {
         this.gs = gs;
         setBackground(new Color(30, 34, 44));
@@ -140,6 +145,14 @@ public class BoardPanel extends JPanel {
         resolutionTimer = tmp;
     }
 
+    /**
+     * Replace the internal GameState instance displayed by this panel.
+     * The panel will use the provided GameState for subsequent painting
+     * and animations. This method also updates the stored previous HP
+     * values so animations start from a consistent baseline.
+     *
+     * @param gs game state to display
+     */
     public void setGameState(GameState gs) {
         this.gs = gs;
         // Do not overwrite previous HP while a resolution animation is active.
@@ -154,28 +167,12 @@ public class BoardPanel extends JPanel {
     }
 
     /**
-     * Replace the internal GameState instance displayed by this panel.
-     * The panel will use the provided GameState for subsequent painting
-     * and animations. This method also updates the stored previous HP
-     * values so animations start from a consistent baseline.
-     *
-     * @param gs game state to display
-     */
-
-    public boolean isAnimating() {
-        return resolutionIdx >= 0 || animTicksP1 > 0 || animTicksP2 > 0 || hpFlashTicks > 0;
-    }
-
-    /**
      * Returns true if a resolution or damage animation is currently active.
      *
      * @return true when an animation is running
      */
-
-    public void triggerDamageAnim(int dmgToP1, int dmgToP2) {
-        // Kept for backward compatibility; use startResolutionAnim for full sequence
-        startResolutionAnim(gs.p1.getDice().currentFaces(), gs.p2.getDice().currentFaces(),
-                gs.p1.getHp(), gs.p2.getHp(), dmgToP1, dmgToP2);
+    public boolean isAnimating() {
+        return resolutionIdx >= 0 || animTicksP1 > 0 || animTicksP2 > 0 || hpFlashTicks > 0;
     }
 
     /**
@@ -187,7 +184,28 @@ public class BoardPanel extends JPanel {
      * @param dmgToP1 damage applied to player 1
      * @param dmgToP2 damage applied to player 2
      */
+    public void triggerDamageAnim(int dmgToP1, int dmgToP2) {
+        // Kept for backward compatibility; use startResolutionAnim for full sequence
+        startResolutionAnim(gs.p1.getDice().currentFaces(), gs.p2.getDice().currentFaces(),
+                gs.p1.getHp(), gs.p2.getHp(), dmgToP1, dmgToP2);
+    }
 
+    /**
+     * Starts the full resolution animation sequence.
+     *
+     * The sequence visualizes melee, ranged and steal resolution steps in
+     * order, then flashes HP loss and plays the final damage overlay. The
+     * method receives the face lists and the HP values before damage was
+     * applied so the panel can show the previous HP during the sequence
+     * and flip to the reduced HP when the flash starts.
+     *
+     * @param p1Faces    faces rolled by player 1
+     * @param p2Faces    faces rolled by player 2
+     * @param hpBeforeP1 HP of player 1 before damage
+     * @param hpBeforeP2 HP of player 2 before damage
+     * @param dmgToP1    damage applied to player 1 (after resolution)
+     * @param dmgToP2    damage applied to player 2 (after resolution)
+     */
     public void startResolutionAnim(List<Face> p1Faces, List<Face> p2Faces, int hpBeforeP1, int hpBeforeP2,
             int dmgToP1, int dmgToP2) {
         this.animFacesP1 = new ArrayList<>(p1Faces);
@@ -211,22 +229,13 @@ public class BoardPanel extends JPanel {
     }
 
     /**
-     * Starts the full resolution animation sequence.
+     * Returns the rectangle for a dice or locked slot at the given
+     * coordinates, or null when none match.
      *
-     * The sequence visualizes melee, ranged and steal resolution steps in
-     * order, then flashes HP loss and plays the final damage overlay. The
-     * method receives the face lists and the HP values before damage was
-     * applied so the panel can show the previous HP during the sequence
-     * and flip to the reduced HP when the flash starts.
-     *
-     * @param p1Faces faces rolled by player 1
-     * @param p2Faces faces rolled by player 2
-     * @param hpBeforeP1 HP of player 1 before damage
-     * @param hpBeforeP2 HP of player 2 before damage
-     * @param dmgToP1 damage applied to player 1 (after resolution)
-     * @param dmgToP2 damage applied to player 2 (after resolution)
+     * @param x x coordinate
+     * @param y y coordinate
+     * @return hit rectangle or null
      */
-
     private Rectangle pickRectAt(int x, int y) {
         for (Rectangle r : p1DiceBounds)
             if (r.contains(x, y))
@@ -243,6 +252,13 @@ public class BoardPanel extends JPanel {
         return null;
     }
 
+    /**
+     * Handle mouse click on the board. Toggles locks when clicking dice
+     * during the roll phase and ignores clicks when not allowed.
+     *
+     * @param x mouse x coordinate
+     * @param y mouse y coordinate
+     */
     private void handleClick(int x, int y) {
         if (gs.rollPhase == 1 && gs.round == 1) {
             boolean hasRolledFace = false;
@@ -278,6 +294,12 @@ public class BoardPanel extends JPanel {
         }
     }
 
+    /**
+     * Log a lock/unlock toggle action for a player's die.
+     *
+     * @param p      player whose die changed
+     * @param dieIdx index of the die that was toggled
+     */
     private void logToggle(Player p, int dieIdx) {
         var faces = p.getDice().currentFaces();
         Face f = (dieIdx < faces.size()) ? faces.get(dieIdx) : null;
@@ -301,6 +323,13 @@ public class BoardPanel extends JPanel {
         gs.addLog(String.format("%s %s die #%d %s", who, faceStr, dieIdx + 1, locked ? "LOCK" : "UNLOCK"));
     }
 
+    /**
+     * Paint the full board including bowls, dice, HP, favor stacks and
+     * active animations. This method uses the internal GameState to
+     * decide what to render and the animation state to overlay effects.
+     *
+     * @param g Graphics context
+     */
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
@@ -360,6 +389,14 @@ public class BoardPanel extends JPanel {
         g2.dispose();
     }
 
+    /**
+     * Draw the combat summary bars and damage indicators on the right
+     * side of the board.
+     *
+     * @param g2 graphics context
+     * @param w  total panel width
+     * @param h  total panel height
+     */
     private void drawBars(Graphics2D g2, int w, int h) {
         // jobb-középre, a két tál közé
         int x = w - 280;
@@ -391,6 +428,18 @@ public class BoardPanel extends JPanel {
         g2.setFont(base); // vissza
     }
 
+    /**
+     * Draw a single attacker/defender bar with the provided counts.
+     *
+     * @param g2    graphics context
+     * @param x     left coordinate
+     * @param y     top coordinate
+     * @param label bar label
+     * @param att   attacker count
+     * @param def   defender count
+     * @param W     bar width
+     * @param H     bar height
+     */
     private void drawBar(Graphics2D g2, int x, int y, String label, int att, int def, int W, int H) {
         g2.setColor(Color.WHITE);
         g2.drawString(label + " (" + att + " vs " + def + ")", x, y - 3);
@@ -408,6 +457,16 @@ public class BoardPanel extends JPanel {
         g2.fillRect(x, y + 2, defW, H / 2);
     }
 
+    /**
+     * Draw a damage bar and label.
+     *
+     * @param g2    graphics context
+     * @param x     left coordinate
+     * @param y     top coordinate
+     * @param label label text
+     * @param dmg   damage value
+     * @param W     bar width
+     */
     private void drawDamage(Graphics2D g2, int x, int y, String label, int dmg, int W) {
         g2.setColor(Color.WHITE);
         g2.drawString(label + ": " + dmg, x, y - 3);
@@ -419,6 +478,12 @@ public class BoardPanel extends JPanel {
         g2.fillRect(x, y + 2, Math.min(W, dmg * 20), 10);
     }
 
+    /**
+     * Draw a single bowl at the provided center point.
+     *
+     * @param g2 graphics context
+     * @param c  center point of the bowl
+     */
     private void drawBowl(Graphics2D g2, Point c) {
         g2.setColor(new Color(60, 50, 40));
         g2.fillOval(c.x - bowlRadius, c.y - bowlRadius, bowlRadius * 2, bowlRadius * 2);
@@ -427,6 +492,17 @@ public class BoardPanel extends JPanel {
         g2.drawOval(c.x - bowlRadius, c.y - bowlRadius, bowlRadius * 2, bowlRadius * 2);
     }
 
+    /**
+     * Draw the HP stones for a player and the red flash for recently
+     * lost HP based on prevHp and the current hp value.
+     *
+     * @param g2         graphics context
+     * @param x          left coordinate
+     * @param y          top coordinate
+     * @param hp         current HP to display
+     * @param prevHp     previous HP value used to compute the flash
+     * @param flashTicks remaining flash animation ticks
+     */
     private void drawHpStones(Graphics2D g2, int x, int y, int hp, int prevHp, int flashTicks) {
         int r = 12;
         int gap = 6;
@@ -452,6 +528,14 @@ public class BoardPanel extends JPanel {
         }
     }
 
+    /**
+     * Draw a stack of favor tokens at the given position.
+     *
+     * @param g2     graphics context
+     * @param x      left coordinate
+     * @param y      top coordinate
+     * @param tokens number of tokens to render
+     */
     private void drawFavorStack(Graphics2D g2, int x, int y, int tokens) {
         int r = 14, dx = 6, dy = 3;
         int layers = Math.min(5, tokens);
@@ -469,6 +553,22 @@ public class BoardPanel extends JPanel {
         }
     }
 
+    /**
+     * Draws the dice for a player either in the bowl layout or in the
+     * resolution strip when overrideFaces is provided. Populates the hit
+     * detection lists with rectangles and indices.
+     *
+     * @param g2            graphics context
+     * @param set           dice set to render
+     * @param center        bowl center point
+     * @param isP1          true for player 1 layout, false for player 2
+     * @param unlockedHit   list to populate with unlocked dice rectangles
+     * @param unlockedIdx   list to populate with unlocked dice indices
+     * @param lockedHit     list to populate with locked dice rectangles
+     * @param lockedIdx     list to populate with locked dice indices
+     * @param overrideFaces when non-null, use this face list for the
+     *                      resolution animation strip
+     */
     private void drawDiceSet(Graphics2D g2, DiceSet set, Point center, boolean isP1,
             List<Rectangle> unlockedHit, List<Integer> unlockedIdx,
             List<Rectangle> lockedHit, List<Integer> lockedIdx,
@@ -557,11 +657,28 @@ public class BoardPanel extends JPanel {
         }
     }
 
-
+    /**
+     * Overload that draws a die without explicit highlight flag.
+     *
+     * @param g2     graphics context
+     * @param r      rectangle to draw into
+     * @param f      face value or null
+     * @param locked whether the die is locked
+     * @param hover  whether the mouse hovers this die
+     */
     private void drawDie(Graphics2D g2, Rectangle r, Face f, boolean locked, boolean hover) {
         drawDie(g2, r, f, locked, hover, false);
     }
 
+    /**
+     * Determine whether the given face should be visually highlighted
+     * for the current resolution step.
+     *
+     * @param isP1   true when checking player 1's die
+     * @param dieIdx index of the die
+     * @param f      face to inspect
+     * @return true when the face should be highlighted
+     */
     private boolean shouldHighlight(boolean isP1, int dieIdx, Face f) {
         if (resolutionIdx < 0 || resolutionIdx >= resolutionSteps.size() || f == null)
             return false;
@@ -576,6 +693,16 @@ public class BoardPanel extends JPanel {
         };
     }
 
+    /**
+     * Draw a single die rectangle with the provided face and state flags.
+     *
+     * @param g2        graphics context
+     * @param r         rectangle to draw into
+     * @param f         face value or null
+     * @param locked    whether the die is locked
+     * @param hover     whether the mouse hovers this die
+     * @param highlight whether the die should be highlighted (resolution effect)
+     */
     private void drawDie(Graphics2D g2, Rectangle r, Face f, boolean locked, boolean hover, boolean highlight) {
         g2.setColor(new Color(235, 235, 235));
         g2.fillRoundRect(r.x, r.y, r.width, r.height, 10, 10);

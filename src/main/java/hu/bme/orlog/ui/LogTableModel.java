@@ -24,21 +24,45 @@ public class LogTableModel extends AbstractTableModel {
         fireTableDataChanged();
     }
 
+    /**
+     * Returns the number of rows (log lines) currently stored.
+     *
+     * @return row count
+     */
     @Override
     public int getRowCount() {
         return rows.size();
     }
 
+    /**
+     * Returns the number of columns in the table model (always 1).
+     *
+     * @return column count
+     */
     @Override
     public int getColumnCount() {
         return 1;
     }
 
+    /**
+     * Returns the column display name.
+     *
+     * @param c column index
+     * @return column name
+     */
     @Override
     public String getColumnName(int c) {
         return "Log";
     }
 
+    /**
+     * Returns the cell value at the given row and column. The model has a
+     * single column containing the log text.
+     *
+     * @param r row index
+     * @param c column index
+     * @return cell value (String)
+     */
     @Override
     public Object getValueAt(int r, int c) {
         return rows.get(r);
