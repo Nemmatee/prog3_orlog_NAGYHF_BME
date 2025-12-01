@@ -1,13 +1,12 @@
 package hu.bme.orlog.model;
 
+import java.util.List;
+import java.util.Random;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-
-import java.util.List;
-import java.util.Random;
-
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -15,6 +14,8 @@ class DiceSetTest {
 
     @Test
     @DisplayName("toggle and setLocked switch lock state")
+    // Verifies that toggling and setting lock flags correctly changes
+    // the locked state of individual dice positions.
     void toggleLock() {
         DiceSet ds = new DiceSet(2, new Random(1));
         assertFalse(ds.isLocked(0));
@@ -28,6 +29,8 @@ class DiceSetTest {
 
     @Test
     @DisplayName("rollUnlocked keeps locked dice face unchanged")
+    // Ensures that rolling only re-rolls unlocked dice: a locked die
+    // must keep its face value between rolls.
     void rollRespectsLocks() {
         DiceSet ds = new DiceSet(2, new Random(2));
         List<Face> firstRoll = ds.rollUnlocked();

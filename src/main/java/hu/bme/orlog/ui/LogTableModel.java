@@ -20,8 +20,8 @@ public class LogTableModel extends AbstractTableModel {
      * @param log deque of log lines (most recent at the end)
      */
     public void setLog(Deque<String> log) {
-        this.rows = List.copyOf(log);
-        fireTableDataChanged();
+        this.rows = List.copyOf(log); // create an immutable snapshot of the current log
+        fireTableDataChanged();       // notify the JTable that the whole data set changed
     }
 
     /**

@@ -1,14 +1,13 @@
 package hu.bme.orlog.model;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -18,6 +17,8 @@ class OrlogEngineTest {
 
     @Test
     @DisplayName("countFaces handles nulls and tallies duplicates")
+    // Ensures that countFaces skips null entries and correctly counts
+    // multiple occurrences of the same face.
     void countFacesHandlesNulls() {
         List<Face> faces = new ArrayList<>();
         faces.add(Face.MELEE);
@@ -34,6 +35,8 @@ class OrlogEngineTest {
 
     @Test
     @DisplayName("Helper counters sum gold and base variants together")
+    // Verifies that helper counter methods (stealAmount, melee, ranged,
+    // shields, helmets) add up base and gold variants of each face.
     void helperCountersWork() {
         Map<Face, Integer> m = new EnumMap<>(Face.class);
         m.put(Face.STEAL, 1);
@@ -54,6 +57,8 @@ class OrlogEngineTest {
 
     @Test
     @DisplayName("resolveRound applies base damage and resets round state")
+    // Tests a simple round resolution with no favors: damage is computed
+    // from melee/ranged vs blocks, HP is updated and round state is reset.
     void resolveRoundBaseDamage() {
         Player p1 = new Player("P1", new DiceSet(6, new Random(1)));
         Player p2 = new Player("P2", new DiceSet(6, new Random(2)));
@@ -75,6 +80,8 @@ class OrlogEngineTest {
 
     @Test
     @DisplayName("goldCount counts only gold faces")
+    // Checks that goldCount only counts faces whose gold flag is true
+    // and ignores null values in the list.
     void goldCountCounts() {
         List<Face> faces = new ArrayList<>();
         faces.add(Face.MELEE_GOLD);
@@ -83,5 +90,62 @@ class OrlogEngineTest {
         faces.add(Face.SHIELD);
         faces.add(null); // ensure null is ignored
         assertEquals(2, engine.goldCount(faces));
+    }
+
+    @Test
+    @DisplayName("BEFORE favor REMOVE_OPP_HELMETS removes enemy helmets before damage")
+    // Simulates a round where the attacker uses Vidar's Might to remove
+    // opponent helmets so that more ranged damage goes through.
+    void beforeFavorRemoveOppHelmetsAffectsDamage() {
+        Player p1 = new Player("P1", new DiceSet(6, new Random(1)));
+        Player p2 = new Player("P2", new DiceSet(6, new Random(2)));
+        GameState gs = new GameState(p1, p2);
+
+        // Give P1 enough favor to pay for Vidar's Might tier 0 (cost 2).
+        p1.addFavor(3);
+        GodFavor vidar = GodFavorCatalog.all().stream()
+                .filter(f -> f.name.equals("Vidar's Might"))
+                .findFirst()
+                .orElseThrow();
+        p1.chooseFavor(vidar, 0);
+
+        // P1 has ranged, P2 has a helmet that would normally block it.
+        List<Face> p1Faces = List.of(Face.RANGED);
+        List<Face> p2Faces = List.of(Face.HELMET);
+
+        engine.resolveRound(gs, p1Faces, p2Faces);
+
+        // Without the favor, helmet would block the ranged hit.
+        // With REMOVE_OPP_HELMETS, the helmet is removed and damage goes through.
+        assertEquals(14, p2.getHp(), "P2 should take 1 damage after helmet is removed");
+        assertEquals(1, p1.getFavor(), "P1 should have paid 2 favor (3-2) for the favor");
+    }
+
+    @Test
+    @DisplayName("AFTER favor DAMAGE applies extra damage after base resolution")
+    // Simulates a round where Thor's Strike is used to deal additional
+    // damage after the normal melee/ranged damage has been applied.
+    void afterFavorDamageAddsExtraDamage() {
+        Player p1 = new Player("P1", new DiceSet(6, new Random(1)));
+        Player p2 = new Player("P2", new DiceSet(6, new Random(2)));
+        GameState gs = new GameState(p1, p2);
+
+        // Give P1 enough favor to pay for Thor's Strike tier 0 (cost 4).
+        p1.addFavor(4);
+        GodFavor thor = GodFavorCatalog.all().stream()
+                .filter(f -> f.name.equals("Thor's Strike"))
+                .findFirst()
+                .orElseThrow();
+        p1.chooseFavor(thor, 0);
+
+        // Simple roll: one melee from P1, no blocks from P2.
+        List<Face> p1Faces = List.of(Face.MELEE);
+        List<Face> p2Faces = List.of();
+
+        engine.resolveRound(gs, p1Faces, p2Faces);
+
+        // Base melee damage: 1. Thor's Strike tier 0 adds magnitude 2 damage.
+        assertEquals(12, p2.getHp(), "P2 should take 3 total damage (1 base + 2 favor)");
+        assertEquals(0, p1.getFavor(), "P1 should have spent all 4 favor on Thor's Strike");
     }
 }
