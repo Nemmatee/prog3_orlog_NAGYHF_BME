@@ -34,7 +34,10 @@ import hu.bme.orlog.model.Player;
  * that the red HP flash and the actual HP decrease happen together.
  */
 public class BoardPanel extends JPanel {
+    // Current game state this panel renders.
     private GameState gs;
+    // Hitbox rectangles and indices for player 1 and player 2 dice
+    // (both unlocked in the bowls and locked in the center rows).
     private final List<Rectangle> p1DiceBounds = new ArrayList<>();
     private final List<Integer> p1DiceIdx = new ArrayList<>();
     private final List<Rectangle> p2DiceBounds = new ArrayList<>();
@@ -44,23 +47,30 @@ public class BoardPanel extends JPanel {
     private final List<Rectangle> p2LockedBounds = new ArrayList<>();
     private final List<Integer> p2LockedIdx = new ArrayList<>();
 
+    // Visual radius of each wooden bowl.
     private final int bowlRadius = 150;
+    // Rectangle under the mouse cursor (for hover effect), or null.
     private Rectangle hoverRect = null;
 
-    // Damage animation
+    // Damage/HP flash animation state.
     private int animTicksP1 = 0;
     private int animTicksP2 = 0;
     private int hpFlashTicks = 0;
+    // HP values before the current resolution animation.
     private int prevHp1 = 15;
     private int prevHp2 = 15;
+    // Damage that will be animated after the resolution steps finish.
     private int pendingDmgP1 = 0;
     private int pendingDmgP2 = 0;
 
     private final List<ResolutionStep> resolutionSteps = new ArrayList<>();
     private List<Face> animFacesP1 = List.of();
     private List<Face> animFacesP2 = List.of();
+    // Index of the current resolution step, -1 means no resolution animation.
     private int resolutionIdx = -1;
+    // Timer driving the damage bowl flash animation.
     private final Timer animTimer;
+    // Timer stepping through the resolution steps (melee/ranged/steal).
     private final Timer resolutionTimer;
 
     /**
@@ -72,6 +82,7 @@ public class BoardPanel extends JPanel {
         this.gs = gs;
         setBackground(new Color(30, 34, 44));
 
+        // Mouse listener for clicks and leaving the board area.
         addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -85,9 +96,11 @@ public class BoardPanel extends JPanel {
                 repaint();
             }
         });
+        // Mouse motion listener to track hover over dice and change cursor.
         addMouseMotionListener(new MouseMotionAdapter() {
             @Override
             public void mouseMoved(MouseEvent e) {
+                // During resolution phase, hovering does nothing.
                 if (gs.rollPhase > 3) {
                     hoverRect = null;
                     setCursor(Cursor.getDefaultCursor());
@@ -104,6 +117,7 @@ public class BoardPanel extends JPanel {
             }
         });
 
+        // Timer for short damage flashes on the bowls and HP stones.
         animTimer = new Timer(40, e -> {
             boolean repaint = false;
             if (animTicksP1 > 0) {
@@ -124,6 +138,8 @@ public class BoardPanel extends JPanel {
                 ((Timer) e.getSource()).stop();
         });
 
+        // Timer that steps through the resolution sequence (melee/ranged/steal)
+        // and then triggers the final HP flash and damage overlay.
         Timer tmp = new Timer(1650, e -> {
             if (resolutionIdx + 1 < resolutionSteps.size()) {
                 resolutionIdx++;
