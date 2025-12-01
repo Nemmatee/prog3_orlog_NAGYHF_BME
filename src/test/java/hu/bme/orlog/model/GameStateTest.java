@@ -1,9 +1,8 @@
 package hu.bme.orlog.model;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
 import java.util.Random;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -11,6 +10,8 @@ class GameStateTest {
 
     @Test
     @DisplayName("Log keeps most recent entries first and caps at 300")
+    // Checks that the log stores at most 300 entries, always
+    // keeping the newest message at the front and trimming old ones.
     void logCapacityCapped() {
         GameState gs = new GameState(new Player("A", new DiceSet(1, new Random(1))),
                 new Player("B", new DiceSet(1, new Random(2))));

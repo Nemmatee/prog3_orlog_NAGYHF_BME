@@ -440,10 +440,14 @@ public class OrlogFrame extends JFrame {
                 // Very simple heuristic: damage is most valuable, then heal,
                 // then gaining tokens; everything else gets a small default.
                 switch (f.type) {
-                    case DAMAGE -> score = 100 + f.magnitudes[t] * 15; // big base + stronger damage increases score a lot
-                    case HEAL -> score = (gs.p1.getHp() > gs.p2.getHp() ? 40 : 0) + f.magnitudes[t] * 10; // extra bonus if AI is behind on HP
-                    case GAIN_TOKENS -> score = 20 + f.magnitudes[t] * 5; // modest base, tokens are useful but less than raw damage
-                    default -> score = 10; // all other types get a small constant score
+                    case DAMAGE -> score = 100 + f.magnitudes[t] * 15; 
+                    // big base + stronger damage increases score a lot
+                    case HEAL -> score = (gs.p1.getHp() > gs.p2.getHp() ? 40 : 0) + f.magnitudes[t] * 10; 
+                    // extra bonus if AI is behind on HP
+                    case GAIN_TOKENS -> score = 20 + f.magnitudes[t] * 5; 
+                    // modest base, tokens are useful but less than raw damage
+                    default -> score = 10; 
+                    // all other types get a small constant score
                 }
                 // Keep the best-scoring combination seen so far.
                 if (score > bestScore) {
