@@ -147,7 +147,25 @@ public class OrlogFrame extends JFrame {
                     board.startResolutionAnim(f1, f2, hpBeforeP1, hpBeforeAI, dmgToP1, dmgToAI);
                     if (gs.isGameOver()) {
                         String winner = gs.p1.getHp() > 0 ? gs.p1.getName() : gs.p2.getName();
-                        JOptionPane.showMessageDialog(OrlogFrame.this, "Winner: " + winner);
+                        // Offer a quick way to start a new game once there is a winner.
+                        int choice = JOptionPane.showConfirmDialog(OrlogFrame.this,
+                                "Winner: " + winner + "\nStart a new game?",
+                                "Game over",
+                                JOptionPane.YES_NO_OPTION);
+                        if (choice == JOptionPane.YES_OPTION) {
+                            // Recreate players and GameState, similar to File > New.
+                            Random rng = new Random();
+                            gs = new GameState(new Player("You", new DiceSet(6, rng)),
+                                               new Player("AI", new DiceSet(6, rng)));
+                            logModel.setLog(gs.log);
+                            board.setGameState(gs);
+                            board.repaint();
+                            // Also reset the roll button text back to the initial state.
+                            if (e.getSource() instanceof JButton b) {
+                                b.setText("Roll / Next");
+                            }
+                            return;
+                        }
                     }
                     // Detailed round summary log (damage and favor changes)
                     // Effective damage: attack minus defense, but never below zero
@@ -162,17 +180,19 @@ public class OrlogFrame extends JFrame {
                     int aiGold = engine.goldCount(f2);
                     int favorDeltaYou = gs.p1.getFavor() - favorBeforeP1;
                     int favorDeltaAI = gs.p2.getFavor() - favorBeforeAI;
-                        gs.addLog("Favor summary (You/AI): +gold " + youGold + "/" + aiGold
-                            + ", steal " + youSteal + "/" + aiSteal
-                            + ", net: " + favorDeltaYou + "/" + favorDeltaAI);
-                        gs.addLog("Summary: You dealt " + gs.dmg1 + " total damage (melee: " + youMeleeDmg
-                            + ", ranged: " + youRangedDmg + ")");
-                        gs.addLog("Summary: AI dealt " + gs.dmg2 + " total damage (melee: " + aiMeleeDmg
-                            + ", ranged: " + aiRangedDmg + ")");
-                        gs.addLog("Details: You melee " + gs.melee1 + " vs AI shield " + gs.shields2
-                            + " | You ranged " + gs.ranged1 + " vs AI helmet " + gs.helmets2);
-                        gs.addLog("Details: AI melee " + gs.melee2 + " vs Your shield " + gs.shields1
-                            + " | AI ranged " + gs.ranged2 + " vs Your helmet " + gs.helmets1);
+                    gs.addLog("Favor summary (You/AI): +gold " + youGold + "/" + aiGold
+                        + ", steal " + youSteal + "/" + aiSteal
+                        + ", net: " + favorDeltaYou + "/" + favorDeltaAI);
+                    gs.addLog("Summary: You dealt " + gs.dmg1
+                        + " base damage (melee: " + youMeleeDmg
+                        + ", ranged: " + youRangedDmg + ") + favor effects");
+                    gs.addLog("Summary: AI dealt " + gs.dmg2
+                        + " base damage (melee: " + aiMeleeDmg
+                        + ", ranged: " + aiRangedDmg + ") + favor effects");
+                    gs.addLog("Details: You melee " + gs.melee1 + " vs AI shield " + gs.shields2
+                        + " | You ranged " + gs.ranged1 + " vs AI helmet " + gs.helmets2);
+                    gs.addLog("Details: AI melee " + gs.melee2 + " vs Your shield " + gs.shields1
+                        + " | AI ranged " + gs.ranged2 + " vs Your helmet " + gs.helmets1);
                 }
                 // Refresh log model and board after each click
                 logModel.setLog(gs.log);
@@ -296,7 +316,10 @@ public class OrlogFrame extends JFrame {
             .sorted(Comparator.comparing((GodFavor f) -> f.type == GodFavor.EffectType.DAMAGE ? 0 : 1)
                 .thenComparingInt(f -> f.priority))
             .limit(3).collect(Collectors.toList()));
-        gs.addLog("Loadouts selected. You: " + gs.p1.getLoadout() + " | AI: " + gs.p2.getLoadout());
+        // Log initial loadouts in two shorter lines so both your and AI's
+        // starting favors are clearly visible in the log table.
+        gs.addLog("Loadout (You): " + gs.p1.getLoadout());
+        gs.addLog("Loadout (AI): " + gs.p2.getLoadout());
     }
 
     /**

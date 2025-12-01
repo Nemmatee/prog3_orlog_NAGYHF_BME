@@ -6,8 +6,7 @@ import hu.bme.orlog.ui.OrlogFrame;
 
 public class App {
     public static void main(String[] args){
-        // Start the Swing user interface on the Event Dispatch Thread,
-        // which is the recommended way to create and show Swing windows.
+        // Open the main Orlog game window (start the GUI)
         SwingUtilities.invokeLater(() -> new OrlogFrame().setVisible(true));
     }
 }
