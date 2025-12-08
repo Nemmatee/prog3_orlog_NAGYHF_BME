@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report-3.0.xsd" version="3.0" name="hu.bme.orlog.model.DiceSetTest" time="0.065" tests="2" errors="0" skipped="0" failures="0">
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report-3.0.xsd" version="3.0" name="hu.bme.orlog.model.DiceSetTest" time="0.061" tests="2" errors="0" skipped="0" failures="0">
   <properties>
     <property name="java.specification.version" value="21"/>
     <property name="sun.cpu.isalist" value="amd64"/>
@@ -15,7 +15,7 @@
     <property name="sun.java.launcher" value="SUN_STANDARD"/>
     <property name="user.country" value="HU"/>
     <property name="sun.boot.library.path" value="C:\Program Files\Java\jdk-21\bin"/>
-    <property name="sun.java.command" value="C:\Users\Nemmatee\AppData\Local\Temp\surefire6329876104396750064\surefirebooter-20251201233550331_3.jar C:\Users\Nemmatee\AppData\Local\Temp\surefire6329876104396750064 2025-12-01T23-35-50_176-jvmRun1 surefire-20251201233550331_1tmp surefire_0-20251201233550331_2tmp"/>
+    <property name="sun.java.command" value="C:\Users\Nemmatee\AppData\Local\Temp\surefire14939395041562668078\surefirebooter-20251208120933525_3.jar C:\Users\Nemmatee\AppData\Local\Temp\surefire14939395041562668078 2025-12-08T12-09-33_313-jvmRun1 surefire-20251208120933525_1tmp surefire_0-20251208120933525_2tmp"/>
     <property name="jdk.debug" value="release"/>
     <property name="surefire.test.class.path" value="D:\Work\Egyetem\3_felev\prog 3\prog3_orlog_NAGYHF_BME\target\test-classes;D:\Work\Egyetem\3_felev\prog 3\prog3_orlog_NAGYHF_BME\target\classes;C:\Users\Nemmatee\.m2\repository\org\junit\jupiter\junit-jupiter\5.10.2\junit-jupiter-5.10.2.jar;C:\Users\Nemmatee\.m2\repository\org\junit\jupiter\junit-jupiter-api\5.10.2\junit-jupiter-api-5.10.2.jar;C:\Users\Nemmatee\.m2\repository\org\opentest4j\opentest4j\1.3.0\opentest4j-1.3.0.jar;C:\Users\Nemmatee\.m2\repository\org\junit\platform\junit-platform-commons\1.10.2\junit-platform-commons-1.10.2.jar;C:\Users\Nemmatee\.m2\repository\org\apiguardian\apiguardian-api\1.1.2\apiguardian-api-1.1.2.jar;C:\Users\Nemmatee\.m2\repository\org\junit\jupiter\junit-jupiter-params\5.10.2\junit-jupiter-params-5.10.2.jar;C:\Users\Nemmatee\.m2\repository\org\junit\jupiter\junit-jupiter-engine\5.10.2\junit-jupiter-engine-5.10.2.jar;C:\Users\Nemmatee\.m2\repository\org\junit\platform\junit-platform-engine\1.10.2\junit-platform-engine-1.10.2.jar;"/>
     <property name="sun.cpu.endian" value="little"/>
@@ -30,7 +30,7 @@
     <property name="line.separator" value="&#10;"/>
     <property name="java.vm.specification.vendor" value="Oracle Corporation"/>
     <property name="java.specification.name" value="Java Platform API Specification"/>
-    <property name="surefire.real.class.path" value="C:\Users\Nemmatee\AppData\Local\Temp\surefire6329876104396750064\surefirebooter-20251201233550331_3.jar"/>
+    <property name="surefire.real.class.path" value="C:\Users\Nemmatee\AppData\Local\Temp\surefire14939395041562668078\surefirebooter-20251208120933525_3.jar"/>
     <property name="user.script" value=""/>
     <property name="sun.management.compiler" value="HotSpot 64-Bit Tiered Compilers"/>
     <property name="java.runtime.version" value="21.0.8+9-LTS"/>
@@ -51,7 +51,7 @@
     <property name="java.vm.specification.name" value="Java Virtual Machine Specification"/>
     <property name="sun.os.patch.level" value=""/>
     <property name="native.encoding" value="Cp1250"/>
-    <property name="java.library.path" value="C:\Program Files\Java\jdk-21\bin;C:\WINDOWS\Sun\Java\bin;C:\WINDOWS\system32;C:\WINDOWS;C:\Users\Nemmatee\bin;C:\Program Files\Git\mingw64\bin;C:\Program Files\Git\usr\local\bin;C:\Program Files\Git\usr\bin;C:\Program Files\Git\usr\bin;C:\Program Files\Git\mingw64\bin;C:\Program Files\Git\usr\bin;C:\Users\Nemmatee\bin;C:\Users\Nemmatee\AppData\Roaming\Code\User\globalStorage\github.copilot-chat\debugCommand;C:\Users\Nemmatee\AppData\Roaming\Code\User\globalStorage\github.copilot-chat\copilotCli;C:\Program Files\Java\jdk-21\bin;C:\Program Files\Common Files\Oracle\Java\javapath;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0;C:\WINDOWS\System32\OpenSSH;C:\Program Files\PuTTY;C:\Program Files\NVIDIA Corporation\NVIDIA App\NvDLISR;C:\Program Files (x86)\NVIDIA Corporation\PhysX\Common;C:\Program Files\dotnet;C:\Program Files\Git\cmd;C:\Program Files\Maven\apache-maven-3.9.11\bin;C:\Program Files\nodejs;C:\Users\Nemmatee\AppData\Local\Programs\Python\Python314\Scripts;C:\Users\Nemmatee\AppData\Local\Programs\Python\Python314;C:\Users\Nemmatee\AppData\Local\Microsoft\WindowsApps;C:\Users\Nemmatee\AppData\Local\Programs\Microsoft VS Code\bin;C:\Program Files\JetBrains\IntelliJ IDEA Community Edition 2025.1.2\bin;C:\Users\Nemmatee\AppData\Local\GitHubDesktop\bin;C:\Program Files\ffmpeg\bin;C:\Users\Nemmatee\AppData\Roaming\npm;C:\Users\Nemmatee\.vscode\extensions\vscjava.vscode-java-debug-0.58.3\bundled\scripts\noConfigScripts;C:\Users\Nemmatee\.vscode\extensions\ms-python.debugpy-2025.16.0-win32-x64\bundled\scripts\noConfigScripts;C:\Program Files\Git\usr\bin\vendor_perl;C:\Program Files\Git\usr\bin\core_perl;."/>
+    <property name="java.library.path" value="C:\Program Files\Java\jdk-21\bin;C:\WINDOWS\Sun\Java\bin;C:\WINDOWS\system32;C:\WINDOWS;C:\Program Files\Java\jdk-21\bin;C:\Program Files\Common Files\Oracle\Java\javapath;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;C:\WINDOWS\System32\OpenSSH\;C:\Program Files\PuTTY\;C:\Program Files\NVIDIA Corporation\NVIDIA App\NvDLISR;C:\Program Files (x86)\NVIDIA Corporation\PhysX\Common;C:\Program Files\dotnet\;C:\Program Files\Git\cmd;C:\Program Files\Maven\apache-maven-3.9.11\bin;C:\Program Files\nodejs\;C:\Users\Nemmatee\AppData\Local\Programs\Python\Python314\Scripts\;C:\Users\Nemmatee\AppData\Local\Programs\Python\Python314\;C:\Users\Nemmatee\AppData\Local\Microsoft\WindowsApps;C:\Users\Nemmatee\AppData\Local\Programs\Microsoft VS Code\bin;C:\Program Files\JetBrains\IntelliJ IDEA Community Edition 2025.1.2\bin;;C:\Users\Nemmatee\AppData\Local\GitHubDesktop\bin;C:\Program Files\ffmpeg\bin;C:\Users\Nemmatee\AppData\Roaming\npm;."/>
     <property name="java.vm.info" value="mixed mode, sharing"/>
     <property name="stderr.encoding" value="Cp1250"/>
     <property name="java.vendor" value="Microsoft"/>
@@ -59,6 +59,6 @@
     <property name="sun.io.unicode.encoding" value="UnicodeLittle"/>
     <property name="java.class.version" value="65.0"/>
   </properties>
-  <testcase name="rollRespectsLocks" classname="hu.bme.orlog.model.DiceSetTest" time="0.037"/>
-  <testcase name="toggleLock" classname="hu.bme.orlog.model.DiceSetTest" time="0.002"/>
+  <testcase name="rollRespectsLocks" classname="hu.bme.orlog.model.DiceSetTest" time="0.034"/>
+  <testcase name="toggleLock" classname="hu.bme.orlog.model.DiceSetTest" time="0.001"/>
 </testsuite>

@@ -102,120 +102,10 @@ public class OrlogFrame extends JFrame {
         logTable.setFillsViewportHeight(true); // always fill the area
 
         // Main button: either roll dice or close the round
-        JButton btnRoll = new JButton(new AbstractAction("Roll / Next") {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                // Ignore clicks while resolution animation is running
-                if (board.isAnimating()) {
-                    return;
-                }
-                // If someone already won, tell the user to start a new game
-                if (gs.isGameOver()) {
-                    JOptionPane.showMessageDialog(OrlogFrame.this, "Game over! Use File > New to start a new game.");
-                    return;
-                }
-                // Before the very first roll, ensure both players have a loadout
-                if (gs.rollPhase == 1) {
-                    ensureLoadoutsSelected();
-                }
-                if (gs.rollPhase <= 3) {
-                    // Player rolls whatever is unlocked
-                    gs.p1.getDice().rollUnlocked();
-                    // AI: roll + apply lock strategy
-                    gs.p2.getDice().rollUnlocked();
-                    // AI decides which dice to lock for the next roll
-                    aiLockStrategy();
-                    gs.addLog("Roll " + gs.rollPhase + " (AI lock strategy applied)");
-                    gs.rollPhase++;
-                    if (gs.rollPhase == 4) {
-                        ((JButton) e.getSource()).setText("End round");
-                    }
-                } else {
-                    // After 3 rolls: resolve combat using current faces
-                    List<Face> f1 = gs.p1.getDice().currentFaces();
-                    List<Face> f2 = gs.p2.getDice().currentFaces();
-                    int hpBeforeAI = gs.p2.getHp();
-                    int hpBeforeP1 = gs.p1.getHp();
-                    int favorBeforeAI = gs.p2.getFavor();
-                    int favorBeforeP1 = gs.p1.getFavor();
-                    // Call the game engine to compute damage and favors
-                    engine.resolveRound(gs, f1, f2);
-                    ((JButton) e.getSource()).setText("Roll / Next");
-                    // Trigger animation sequence (resolution steps + HP flash)
-                    int dmgToAI = hpBeforeAI - gs.p2.getHp();
-                    int dmgToP1 = hpBeforeP1 - gs.p1.getHp();
-                    board.startResolutionAnim(f1, f2, hpBeforeP1, hpBeforeAI, dmgToP1, dmgToAI);
-                    if (gs.isGameOver()) {
-                        String winner = gs.p1.getHp() > 0 ? gs.p1.getName() : gs.p2.getName();
-                        // Offer a quick way to start a new game once there is a winner.
-                        int choice = JOptionPane.showConfirmDialog(OrlogFrame.this,
-                                "Winner: " + winner + "\nStart a new game?",
-                                "Game over",
-                                JOptionPane.YES_NO_OPTION);
-                        if (choice == JOptionPane.YES_OPTION) {
-                            // Recreate players and GameState, similar to File > New.
-                            Random rng = new Random();
-                            gs = new GameState(new Player("You", new DiceSet(6, rng)),
-                                               new Player("AI", new DiceSet(6, rng)));
-                            logModel.setLog(gs.log);
-                            board.setGameState(gs);
-                            board.repaint();
-                            // Also reset the roll button text back to the initial state.
-                            if (e.getSource() instanceof JButton b) {
-                                b.setText("Roll / Next");
-                            }
-                            return;
-                        }
-                    }
-                    // Detailed round summary log (damage and favor changes)
-                    // Effective damage: attack minus defense, but never below zero
-                    int youMeleeDmg = Math.max(0, gs.melee1 - gs.shields2);
-                    int youRangedDmg = Math.max(0, gs.ranged1 - gs.helmets2);
-                    int aiMeleeDmg = Math.max(0, gs.melee2 - gs.shields1);
-                    int aiRangedDmg = Math.max(0, gs.ranged2 - gs.helmets1);
-                    // Steal amount: what dice allow, but not more than opponent's favor
-                    int youSteal = Math.min(engine.stealAmount(engine.countFaces(f1)), favorBeforeAI);
-                    int aiSteal = Math.min(engine.stealAmount(engine.countFaces(f2)), favorBeforeP1);
-                    int youGold = engine.goldCount(f1);
-                    int aiGold = engine.goldCount(f2);
-                    int favorDeltaYou = gs.p1.getFavor() - favorBeforeP1;
-                    int favorDeltaAI = gs.p2.getFavor() - favorBeforeAI;
-                    gs.addLog("Favor summary (You/AI): +gold " + youGold + "/" + aiGold
-                        + ", steal " + youSteal + "/" + aiSteal
-                        + ", net: " + favorDeltaYou + "/" + favorDeltaAI);
-                    gs.addLog("Summary: You dealt " + gs.dmg1
-                        + " base damage (melee: " + youMeleeDmg
-                        + ", ranged: " + youRangedDmg + ") + favor effects");
-                    gs.addLog("Summary: AI dealt " + gs.dmg2
-                        + " base damage (melee: " + aiMeleeDmg
-                        + ", ranged: " + aiRangedDmg + ") + favor effects");
-                    gs.addLog("Details: You melee " + gs.melee1 + " vs AI shield " + gs.shields2
-                        + " | You ranged " + gs.ranged1 + " vs AI helmet " + gs.helmets2);
-                    gs.addLog("Details: AI melee " + gs.melee2 + " vs Your shield " + gs.shields1
-                        + " | AI ranged " + gs.ranged2 + " vs Your helmet " + gs.helmets1);
-                }
-                // Refresh log model and board after each click
-                logModel.setLog(gs.log);
-                board.setGameState(gs);
-                board.repaint();
-            }
-        });
+        JButton btnRoll = new JButton(new RollAction());
 
         // Button to select God Favor for this round
-        JButton btnFavor = new JButton(new AbstractAction("God Favor…") {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (gs.isGameOver())
-                    return;
-                boolean chosen = chooseFavorForRound(OrlogFrame.this, "Select God Favor for this round (You)", gs.p1);
-                if (chosen) {
-                    aiChooseFavor();
-                }
-                // After (possible) favors, refresh log and board
-                logModel.setLog(gs.log);
-                board.repaint();
-            }
-        });
+        JButton btnFavor = new JButton(new FavorAction());
 
         // Right side panel: log table on top, buttons at the bottom
         JPanel right = new JPanel(new BorderLayout());
@@ -229,6 +119,108 @@ public class OrlogFrame extends JFrame {
         setLayout(new BorderLayout());
         add(board, BorderLayout.CENTER);
         add(right, BorderLayout.EAST);
+    }
+
+    /**
+     * Handles the click event for the Roll/Next button.
+     * Manages the game loop: rolling dice, AI strategy, and resolving rounds.
+     *
+     * @param e the action event triggered by the button click
+     */
+    private void onRollClicked(ActionEvent e) {
+        // Ignore clicks while resolution animation is running
+        if (board.isAnimating()) {
+            return;
+        }
+        // If someone already won, tell the user to start a new game
+        if (gs.isGameOver()) {
+            JOptionPane.showMessageDialog(OrlogFrame.this, "Game over! Use File > New to start a new game.");
+            return;
+        }
+        // Before the very first roll, ensure both players have a loadout
+        if (gs.rollPhase == 1) {
+            ensureLoadoutsSelected();
+        }
+        if (gs.rollPhase <= 3) {
+            // Player rolls whatever is unlocked
+            gs.p1.getDice().rollUnlocked();
+            // AI: roll + apply lock strategy
+            gs.p2.getDice().rollUnlocked();
+            // AI decides which dice to lock for the next roll
+            aiLockStrategy();
+            gs.addLog("Roll " + gs.rollPhase + " (AI lock strategy applied)");
+            gs.rollPhase++;
+            if (gs.rollPhase == 4) {
+                ((JButton) e.getSource()).setText("End round");
+            }
+        } else {
+            // After 3 rolls: resolve combat using current faces
+            List<Face> f1 = gs.p1.getDice().currentFaces();
+            List<Face> f2 = gs.p2.getDice().currentFaces();
+            int hpBeforeAI = gs.p2.getHp();
+            int hpBeforeP1 = gs.p1.getHp();
+            int favorBeforeAI = gs.p2.getFavor();
+            int favorBeforeP1 = gs.p1.getFavor();
+            // Call the game engine to compute damage and favors
+            engine.resolveRound(gs, f1, f2);
+            ((JButton) e.getSource()).setText("Roll / Next");
+            // Trigger animation sequence (resolution steps + HP flash)
+            int dmgToAI = hpBeforeAI - gs.p2.getHp();
+            int dmgToP1 = hpBeforeP1 - gs.p1.getHp();
+            board.startResolutionAnim(f1, f2, hpBeforeP1, hpBeforeAI, dmgToP1, dmgToAI);
+            if (gs.isGameOver()) {
+                String winner = gs.p1.getHp() > 0 ? gs.p1.getName() : gs.p2.getName();
+                // Offer a quick way to start a new game once there is a winner.
+                int choice = JOptionPane.showConfirmDialog(OrlogFrame.this,
+                        "Winner: " + winner + "\nStart a new game?",
+                        "Game over",
+                        JOptionPane.YES_NO_OPTION);
+                if (choice == JOptionPane.YES_OPTION) {
+                    // Recreate players and GameState, similar to File > New.
+                    Random rng = new Random();
+                    gs = new GameState(new Player("You", new DiceSet(6, rng)),
+                                       new Player("AI", new DiceSet(6, rng)));
+                    logModel.setLog(gs.log);
+                    board.setGameState(gs);
+                    board.repaint();
+                    // Also reset the roll button text back to the initial state.
+                    if (e.getSource() instanceof JButton b) {
+                        b.setText("Roll / Next");
+                    }
+                    return;
+                }
+            }
+            // Detailed round summary log (damage and favor changes)
+            // Effective damage: attack minus defense, but never below zero
+            int youMeleeDmg = Math.max(0, gs.melee1 - gs.shields2);
+            int youRangedDmg = Math.max(0, gs.ranged1 - gs.helmets2);
+            int aiMeleeDmg = Math.max(0, gs.melee2 - gs.shields1);
+            int aiRangedDmg = Math.max(0, gs.ranged2 - gs.helmets1);
+            // Steal amount: what dice allow, but not more than opponent's favor
+            int youSteal = Math.min(engine.stealAmount(engine.countFaces(f1)), favorBeforeAI);
+            int aiSteal = Math.min(engine.stealAmount(engine.countFaces(f2)), favorBeforeP1);
+            int youGold = engine.goldCount(f1);
+            int aiGold = engine.goldCount(f2);
+            int favorDeltaYou = gs.p1.getFavor() - favorBeforeP1;
+            int favorDeltaAI = gs.p2.getFavor() - favorBeforeAI;
+            gs.addLog("Favor summary (You/AI): +gold " + youGold + "/" + aiGold
+                + ", steal " + youSteal + "/" + aiSteal
+                + ", net: " + favorDeltaYou + "/" + favorDeltaAI);
+            gs.addLog("Summary: You dealt " + gs.dmg1
+                + " base damage (melee: " + youMeleeDmg
+                + ", ranged: " + youRangedDmg + ") + favor effects");
+            gs.addLog("Summary: AI dealt " + gs.dmg2
+                + " base damage (melee: " + aiMeleeDmg
+                + ", ranged: " + aiRangedDmg + ") + favor effects");
+            gs.addLog("Details: You melee " + gs.melee1 + " vs AI shield " + gs.shields2
+                + " | You ranged " + gs.ranged1 + " vs AI helmet " + gs.helmets2);
+            gs.addLog("Details: AI melee " + gs.melee2 + " vs Your shield " + gs.shields1
+                + " | AI ranged " + gs.ranged2 + " vs Your helmet " + gs.helmets1);
+        }
+        // Refresh log model and board after each click
+        logModel.setLog(gs.log);
+        board.setGameState(gs);
+        board.repaint();
     }
 
     /**
@@ -551,5 +543,41 @@ public class OrlogFrame extends JFrame {
     private void showErr(Exception ex) {
         ex.printStackTrace();
         JOptionPane.showMessageDialog(this, ex.toString(), "Hiba", JOptionPane.ERROR_MESSAGE);
+    }
+
+    /**
+     * Action for the Roll/Next button.
+     */
+    private class RollAction extends AbstractAction {
+        public RollAction() {
+            super("Roll / Next");
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            onRollClicked(e);
+        }
+    }
+
+    /**
+     * Action for the God Favor button.
+     */
+    private class FavorAction extends AbstractAction {
+        public FavorAction() {
+            super("God Favor…");
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            if (gs.isGameOver())
+                return;
+            boolean chosen = chooseFavorForRound(OrlogFrame.this, "Select God Favor for this round (You)", gs.p1);
+            if (chosen) {
+                aiChooseFavor();
+            }
+            // After (possible) favors, refresh log and board
+            logModel.setLog(gs.log);
+            board.repaint();
+        }
     }
 }
