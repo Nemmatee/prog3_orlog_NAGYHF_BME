@@ -523,13 +523,13 @@ public class OrlogFrame extends JFrame {
                 keep = true;
             if (keepType == Face.RANGED && f.isAttackRanged())
                 keep = true;
-            // Defensive bias: if the player has too few helmets vs. AI ranged,
+            // Defensive bias: if AI has too few helmets vs. Player ranged,
             // prefer to keep helmets.
-            if (gs.round > 1 && (gs.helmets1 < gs.ranged2) && f.isHelmet())
+            if (gs.round > 1 && (gs.helmets2 < gs.ranged1) && f.isHelmet())
                 keep = true;
-            // Similarly, if the player has too few shields vs. AI melee,
+            // Similarly, if AI has too few shields vs. Player melee,
             // prefer to keep shields.
-            if (gs.round > 1 && (gs.shields1 < gs.melee2) && f.isShield())
+            if (gs.round > 1 && (gs.shields2 < gs.melee1) && f.isShield())
                 keep = true;
             gs.p2.getDice().setLocked(i, keep);
         }
@@ -571,9 +571,21 @@ public class OrlogFrame extends JFrame {
         public void actionPerformed(ActionEvent e) {
             if (gs.isGameOver())
                 return;
-            boolean chosen = chooseFavorForRound(OrlogFrame.this, "Select God Favor for this round (You)", gs.p1);
-            if (chosen) {
-                aiChooseFavor();
+            // Előző favor loadout méret
+            int prevLoadout = gs.p1.getLoadout().size();
+            ensureLoadoutsSelected();
+            // Ha most választott favorokat, csak frissít és return
+            if (prevLoadout != 3 && gs.p1.getLoadout().size() == 3) {
+                logModel.setLog(gs.log);
+                board.repaint();
+                return;
+            }
+            // Ha már volt favor loadout, akkor jöhet a kör favor választás affordability checkkel
+            if (gs.p1.getLoadout().size() == 3) {
+                boolean chosen = chooseFavorForRound(OrlogFrame.this, "Select God Favor for this round (You)", gs.p1);
+                if (chosen) {
+                    aiChooseFavor();
+                }
             }
             // After (possible) favors, refresh log and board
             logModel.setLog(gs.log);
