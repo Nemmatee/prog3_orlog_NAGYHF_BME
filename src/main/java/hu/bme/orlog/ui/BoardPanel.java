@@ -251,7 +251,7 @@ public class BoardPanel extends JPanel {
         }
         // Only allow locking/unlocking while we are still in roll phases 1–3.
         // After that the resolution phase starts and dice should not change.
-        if (gs.rollPhase <= 3) {
+        if (gs.rollPhase <= 3 && !isAnimating()) {
             // First try to toggle a die that is still in the bowl
             // (unlocked dice around the wooden bowl).
             for (int k = 0; k < p1DiceBounds.size(); k++) {
